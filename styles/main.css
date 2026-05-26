@@ -241,13 +241,15 @@ body::before {
 
 .nav-logo {
     font-family: 'Playfair Display', serif;
-    font-size: 1.7rem;
+    font-size: clamp(0.82rem, 2.4vw, 1.35rem);
     font-weight: 700;
     background: var(--accent-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: 0;
+    line-height: 1.15;
+    max-width: 58%;
 }
 
 .nav-links {
@@ -1470,7 +1472,7 @@ body::before {
 
     .navbar { padding: 1rem 1.25rem; }
     .navbar.scrolled { padding: 0.75rem 1.25rem; }
-    .nav-logo { font-size: 1.5rem; }
+    .nav-logo { max-width: 52%; font-size: 0.82rem; }
 
     .nav-links {
         position: fixed;
@@ -1558,7 +1560,7 @@ body::before {
 /* Extra tightening for very narrow phones */
 @media (max-width: 420px) {
     .navbar { padding: 0.85rem 1rem; }
-    .nav-logo { font-size: 1.35rem; }
+    .nav-logo { max-width: 50%; font-size: 0.78rem; }
     .theme-toggle { width: 34px; height: 34px; margin-left: 0.5rem; font-size: 0.85rem; }
     .nav-toggle { width: 34px; height: 34px; }
     .nav-toggle span { width: 22px; }
