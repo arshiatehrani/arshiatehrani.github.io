@@ -30,7 +30,11 @@
             wheelMultiplier: 1.0,
             touchMultiplier: 1.5,
         });
-        function rafLenis(time) { lenis.raf(time); requestAnimationFrame(rafLenis); }
+        function rafLenis(time) {
+            lenis.raf(time);
+            onScroll();                 /* sync hero fades every frame — fixes fast-scroll clipping */
+            requestAnimationFrame(rafLenis);
+        }
         requestAnimationFrame(rafLenis);
 
         // Make anchor links use Lenis so motion stays smooth.
@@ -81,7 +85,7 @@
         const scrollTop = window.scrollY;
         const vh = window.innerHeight;
         const docHeight = document.documentElement.scrollHeight - vh;
-        const progress = (scrollTop / docHeight) * 100;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
 
         if (progressBar) progressBar.style.width = progress + '%';
 
@@ -90,28 +94,32 @@
             else navbar.classList.remove('scrolled');
         }
 
-        // HERO CINEMATIC EXIT — drift down, scale up slightly, fade
-        if (heroContent && scrollTop < vh * 1.2) {
-            const t = Math.min(scrollTop / vh, 1);
-            const translateY = scrollTop * 0.35;
-            const scale = 1 + t * 0.12;
-            const opacity = Math.max(0, 1 - t * 1.2);
-            heroContent.style.transform = `translateY(${translateY}px) scale(${scale})`;
-            heroContent.style.opacity = String(opacity);
+        // HERO CINEMATIC EXIT — drift down, scale up slightly, fade (text only)
+        if (heroContent) {
+            if (scrollTop < vh * 1.2) {
+                const t = Math.min(scrollTop / vh, 1);
+                const translateY = scrollTop * 0.35;
+                const scale = 1 + t * 0.12;
+                const opacity = Math.max(0, 1 - t * 1.2);
+                heroContent.style.transform = `translateY(${translateY}px) scale(${scale})`;
+                heroContent.style.opacity = String(opacity);
+            } else {
+                heroContent.style.opacity = '0';
+                heroContent.style.transform = `translateY(${vh * 0.42}px) scale(1.12)`;
+            }
         }
 
-        // HERO BUTTONS — fade faster than the rest of the hero so the solid
-        // gradient + shadow on the primary button doesn't read as a stranded
-        // dark rectangle while the surrounding text is fading.
-        if (heroButtons && scrollTop < vh * 0.6) {
-            const tb = Math.min(scrollTop / (vh * 0.32), 1);
-            // Faster opacity decay + small extra translateY so they slide
-            // out from under any visible artifact zone smoothly.
-            const op = Math.max(0, 1 - tb * 1.6);
-            const extraY = scrollTop * 0.18;
+        // HERO BUTTONS — separate layer; fade out early and fully hide (no box artifact)
+        if (heroButtons) {
+            const tb = Math.min(scrollTop / (vh * 0.26), 1);
+            const op = Math.max(0, 1 - tb * 2.4);
+            const extraY = scrollTop * 0.12;
+            const hidden = op <= 0.02;
+
             heroButtons.style.opacity = String(op);
-            heroButtons.style.transform = `translateY(${extraY}px)`;
-            heroButtons.style.pointerEvents = op < 0.2 ? 'none' : 'auto';
+            heroButtons.style.transform = hidden ? 'translateY(24px)' : `translateY(${extraY}px)`;
+            heroButtons.style.visibility = hidden ? 'hidden' : 'visible';
+            heroButtons.style.pointerEvents = hidden ? 'none' : 'auto';
         }
 
         // SECTION HEADERS — subtle horizontal drift as they pass through viewport
