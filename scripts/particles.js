@@ -129,12 +129,10 @@
             p.y -= scrollDelta * (config.parallaxFactor || 0);
             p.twinkle += p.twinkleSpeed;
 
-            // Cursor interaction — DIRECTIONAL physics push.
-            // The cursor's per-frame velocity is multiplied by an eased weight
-            // based on distance to the cursor. Particles inside the radius get
-            // nudged in the EXACT direction the cursor is moving.
-            // When the cursor is still, mouseVx == mouseVy == 0 and nothing
-            // happens — particles drift freely through the circle.
+            // Cursor interaction — small "physical ball" pushing particles aside.
+            // Particles get nudged in the cursor's direction of motion, but ONLY
+            // when the cursor is moving and ONLY for those within a tight radius.
+            // The push is clamped so flicks don't launch particles off-screen.
             if (config.reactsToMouse && mouse.active && (mouseVx !== 0 || mouseVy !== 0)) {
                 const dx = p.x - mouse.x;
                 const dy = p.y - mouse.y;
@@ -142,19 +140,32 @@
                 const infl = config.mouseInfluence;
                 if (distSq < infl * infl) {
                     const t = 1 - Math.sqrt(distSq) / infl;     // 0 at edge, 1 at cursor
-                    const eased = t * t * (3 - 2 * t);           // smoothstep
+                    const eased = t * t * (3 - 2 * t);
+                    // Clamp cursor velocity so very fast flicks don't blast
+                    // particles across the page — keeps motion believable.
+                    const CAP = 25;
+                    const cvx = Math.max(-CAP, Math.min(CAP, mouseVx));
+                    const cvy = Math.max(-CAP, Math.min(CAP, mouseVy));
                     const k = eased * config.mouseForce;
-                    p.vx += mouseVx * k;
-                    p.vy += mouseVy * k;
+                    p.vx += cvx * k;
+                    p.vy += cvy * k;
                 }
             }
 
-            // Damp velocity back toward natural drift each frame.
-            // Particles always return to their baseline trajectory once the
-            // cursor moves on. Prevents runaway speed.
-            const damp = 0.05;
+            // Damp velocity back toward natural drift. Anything the cursor adds
+            // bleeds off over ~0.4-0.6 s, leaving the original trajectory.
+            const damp = 0.07;
             p.vx += (p.baseVx - p.vx) * damp;
             p.vy += (p.baseVy - p.vy) * damp;
+
+            // Hard speed cap — safety net against runaway velocity.
+            const maxV = config.maxSpeed * 6;
+            const speedSq = p.vx * p.vx + p.vy * p.vy;
+            if (speedSq > maxV * maxV) {
+                const s = Math.sqrt(speedSq);
+                p.vx = (p.vx / s) * maxV;
+                p.vy = (p.vy / s) * maxV;
+            }
 
             // Wrap edges with SCATTER. When a particle leaves at one edge it
             // re-enters at a random spot on the opposite edge (random X and a
@@ -304,8 +315,8 @@
         lineOpacity: 0.32,
         lineWidth: 0.8,
         reactsToMouse: true,
-        mouseInfluence: 460,                            // big "felt" radius
-        mouseForce: 0.30,                               // fraction of cursor velocity transferred at center
+        mouseInfluence: 90,                             // small physical "ball" — local push only
+        mouseForce: 0.45,                               // strong transfer inside the ball
     };
 
     // BACK — distant, slower, gentler swirl
@@ -325,8 +336,8 @@
         lineOpacity: 0.22,
         lineWidth: 0.55,
         reactsToMouse: true,
-        mouseInfluence: 380,
-        mouseForce: 0.18,                               // distant layer transfers less of cursor velocity
+        mouseInfluence: 70,
+        mouseForce: 0.30,                               // distant layer still moves but a touch less
     };
 
     /* ============================================================
