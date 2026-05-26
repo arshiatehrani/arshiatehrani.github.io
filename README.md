@@ -1,13 +1,15 @@
 # Personal Portfolio Website
 
-A modern, interactive portfolio template featuring:
+An interactive, cinematic portfolio template inspired by Apple-style scrolling and Google Antigravity's particle field.
 
-- **Interactive particle network background** — particles drift, connect, and react to your mouse
-- **Apple-style scroll animations** — sections fade and slide into view as you scroll
-- **Parallax hero**, animated typewriter, animated stat counters
-- **Scroll progress bar**, glass-blur navbar, custom cursor glow
-- **Fully responsive** for desktop, tablet, and mobile
-- **Pure HTML / CSS / JavaScript** — zero build step, no frameworks
+**Features**
+- Layered interactive particle network background (Antigravity-style, two depth layers, mouse-reactive)
+- Lenis-powered buttery smooth scroll
+- Apple-style scroll reveals, hero scale-out, parallax section headers
+- Sections: Hero, About, Timeline (expandable), Tools, Projects, Publications, Gallery, World Experience (interactive Leaflet map), Contact
+- Oxford Blue + foggy lavender/gray palette
+- Fully responsive
+- Pure HTML / CSS / JS — no build step
 
 ---
 
@@ -15,172 +17,159 @@ A modern, interactive portfolio template featuring:
 
 ```
 github.io/
-├── index.html              # All page content lives here
+├── index.html                  # All page content
 ├── styles/
-│   └── main.css            # All styling (colors, layout, animations)
+│   └── main.css                # Styling (colors at the top)
 ├── scripts/
-│   ├── particles.js        # Particle network background
-│   ├── scroll-effects.js   # Scroll reveals, parallax, progress bar
-│   └── main.js             # Typewriter, mobile nav, cursor glow
-├── assets/                 # Your photos, resume PDF, project images
-├── .nojekyll               # Tells GitHub Pages to serve files as-is
+│   ├── particles.js            # Layered particle network
+│   ├── scroll-effects.js       # Lenis + reveals + parallax
+│   ├── world-map.js            # Leaflet map (EDIT the PLACES list here)
+│   └── main.js                 # Typewriter, mobile nav, timeline, cursor glow
+├── assets/                     # Your photos, resume PDF
+│   └── gallery/                # Gallery photos
+├── .nojekyll                   # Tells GitHub Pages to serve files as-is
 └── README.md
 ```
 
 ---
 
-## Step 1 — Preview Locally
+## Quick Preview
 
-Open `index.html` in your browser by double-clicking it. That's it. Everything works from disk.
-
-If you want a proper local server (recommended for cleaner asset loading):
+Double-click `index.html`. Or for a clean local server:
 
 ```powershell
-# from the project folder
 python -m http.server 8000
 ```
 
-Then visit http://localhost:8000
+then open http://localhost:8000.
 
 ---
 
-## Step 2 — Fill in Your Content
+## Where To Edit What
 
-Every place you need to edit is marked with an `EDIT:` comment in the files. The main spots:
+Every editable spot is marked `EDIT:` in the source. The big ones:
 
-### `index.html`
-- **Title & meta** at the top
-- **Hero section** — your name, intro line, resume link
-- **About section** — photo path, bio paragraphs, stat numbers
-- **Tools grid** — add/remove `.tool-card` blocks (find icons at https://fontawesome.com/icons)
-- **Projects grid** — duplicate a `.project-card` block for each project
-- **Publications list** — duplicate a `.publication-item` block per paper
-- **Contact section** — your email, GitHub, LinkedIn, Scholar URLs
-- **Logo** — change `YN.` in the nav to your initials
+| Section | File | What |
+| --- | --- | --- |
+| Name, bio, links | `index.html` | search `EDIT:` |
+| Typewriter roles | `scripts/main.js` | `ROLES` array at the top |
+| Colors / theme | `styles/main.css` | `:root` block at the very top |
+| World map pins | `scripts/world-map.js` | `PLACES` array — add `{name, detail, type, lat, lng}` per pin |
+| Particle density / behavior | `scripts/particles.js` | `NEAR_CONFIG` and `BACK_CONFIG` blocks |
+| Profile photo | `assets/profile.jpg` | drop a square photo here |
+| Resume | `assets/resume.pdf` | drop your PDF here |
+| Gallery photos | `assets/gallery/photo1.jpg`, ... | match the filenames referenced in `index.html` |
 
-### `scripts/main.js`
-- **`ROLES` array** at the top — the words that get typed in the hero
+### Adding a world map pin
+Open `scripts/world-map.js` and add an entry to `PLACES`:
 
-### `styles/main.css`
-- **`:root` block** at the very top — change the color palette in one place
+```javascript
+{ name: 'Paris, France', detail: 'Visited 2024', type: 'visited', lat: 48.8566, lng: 2.3522 },
+```
 
-### `assets/` folder
-- Add `profile.jpg` (your photo)
-- Add `resume.pdf` (your resume)
-- Add any project screenshots you want to use
+`type` is one of `'lived'`, `'visited'`, `'work'`. Get coordinates by right-clicking any place in Google Maps.
+
+### Adding a gallery photo
+1. Drop the image in `assets/gallery/` (e.g., `iceland.jpg`)
+2. Copy a `.gallery-item` block in `index.html`, change the `src` and the caption text.
+
+### Adding a timeline year
+Copy a `.timeline-item` block in `index.html`. The expand-on-click works automatically.
 
 ---
 
-## Step 3 — Push to GitHub Pages
+## Deploying to GitHub Pages
 
-GitHub Pages can host your site for free at **`https://YOUR-USERNAME.github.io`**.
+GitHub Pages will host your site for free at `https://YOUR-USERNAME.github.io`.
 
-### 3a. Create the repository
+### 1. Create the repo
+1. Go to https://github.com and sign in
+2. Click **+** → **New repository**
+3. Name it **exactly** `YOUR-USERNAME.github.io` (this exact naming is what triggers the personal-site behavior)
+4. Set **Public**, do NOT add a README
+5. Click **Create repository**
 
-1. Go to https://github.com and sign in (or create an account)
-2. Click the **+** in the top-right → **New repository**
-3. **Repository name must be exactly**: `YOUR-USERNAME.github.io`
-   (replace `YOUR-USERNAME` with your actual GitHub username — this exact naming is what makes it a user site)
-4. Set it to **Public**
-5. **Do NOT** check "Add a README" (we already have one)
-6. Click **Create repository**
-
-### 3b. Push your code
-
-Open PowerShell in this folder and run:
+### 2. Push your code
+Open PowerShell in the project folder:
 
 ```powershell
-# initialize a git repo
 git init
 git branch -M main
-
-# stage and commit everything
 git add .
-git commit -m "Initial portfolio commit"
-
-# connect to GitHub (replace YOUR-USERNAME)
+git commit -m "Initial portfolio"
 git remote add origin https://github.com/YOUR-USERNAME/YOUR-USERNAME.github.io.git
-
-# push
 git push -u origin main
 ```
 
-If you've never used git on this machine, you'll be prompted to sign in. The easiest path is:
+If git asks who you are first time:
 
 ```powershell
 git config --global user.name "Your Name"
-git config --global user.email "your.email@example.com"
+git config --global user.email "you@example.com"
 ```
 
-…and then push again. GitHub will open a browser to authenticate you.
+GitHub will pop a browser to authenticate.
 
-### 3c. Enable Pages (usually already on for `username.github.io` repos)
+### 3. Enable Pages (usually already on)
+**Settings → Pages → Build and deployment**:
+- Source: **Deploy from a branch**
+- Branch: **main**, folder: **/ (root)**
+- Save
 
-1. On your repo page, click **Settings** → **Pages** (left sidebar)
-2. Under **Build and deployment**, source should be **Deploy from a branch**
-3. Branch: **`main`**, folder: **`/ (root)`**
-4. Click **Save**
-
-### 3d. Visit your site
-
-Wait 1–3 minutes after pushing. Your site will be live at:
+### 4. Visit your site
+Wait 1–3 minutes after pushing. It will be live at:
 
 ```
 https://YOUR-USERNAME.github.io
 ```
 
----
-
-## Step 4 — Updating the Site Later
-
-Any time you change something:
-
+### 5. Updating later
 ```powershell
 git add .
 git commit -m "Update content"
 git push
 ```
 
-GitHub Pages will redeploy within a minute or two. Hard-refresh your browser (Ctrl+Shift+R) if you don't see changes right away.
+Hard-refresh (Ctrl+Shift+R) if changes don't show right away.
 
 ---
 
 ## Customization Tips
 
 ### Change the color theme
-Open `styles/main.css` and edit the variables at the very top:
+The whole site recolors from this one block at the top of `styles/main.css`:
 
 ```css
 :root {
-    --accent-primary: #00d4ff;   /* cyan */
-    --accent-secondary: #915eff; /* purple */
-    /* ...etc */
+    --bg-primary: #050a18;
+    --oxford: #002147;
+    --fog-blue: #4a7fb3;
+    --fog-light: #9ab1c9;
+    --fog-lavender: #b0a8c4;
+    /* ... */
 }
 ```
 
-The whole site recolors instantly.
-
-### Slow down or speed up the particles
-In `scripts/particles.js`, top of the file:
+### Particle density
+Top of `scripts/particles.js`:
 
 ```javascript
-const CONFIG = {
-    particleDensity: 0.00009,  // higher = more particles
-    minSpeed: 0.15,
-    maxSpeed: 0.5,
-    connectionDistance: 140,   // longer = more lines
-    mouseInfluence: 160,       // bigger mouse repulsion field
+const NEAR_CONFIG = {
+    density: 0.00022,           // higher = more particles
+    maxParticles: 260,
+    connectionDistance: 130,    // longer = more lines
+    mouseInfluence: 170,
 };
 ```
 
-### Add more projects, tools, or publications
-Just copy one of the existing `.project-card`, `.tool-card`, or `.publication-item` blocks in `index.html` and edit the content. The grid layout and scroll animations work automatically.
+### Switch to a particle library (optional)
+If you ever want to use `tsparticles` instead: replace `scripts/particles.js` with their CDN script and a config object. The custom version is lighter (~3KB vs ~30KB) and was kept for that reason.
 
 ### Use a custom domain (optional)
-1. Buy a domain (Namecheap, Google Domains, etc.)
-2. In your repo: **Settings → Pages → Custom domain**, enter your domain
-3. At your domain registrar, add a CNAME record pointing to `YOUR-USERNAME.github.io`
-4. Enable **Enforce HTTPS** once the DNS check passes
+1. Buy a domain (Namecheap, Porkbun, etc.)
+2. Repo **Settings → Pages → Custom domain** → enter the domain
+3. At your registrar, add a CNAME record pointing to `YOUR-USERNAME.github.io`
+4. Tick **Enforce HTTPS** once DNS verifies
 
 ---
 
@@ -188,12 +177,13 @@ Just copy one of the existing `.project-card`, `.tool-card`, or `.publication-it
 
 | Problem | Fix |
 | --- | --- |
-| Site shows 404 after pushing | Wait 2–3 minutes; check Settings → Pages says "Your site is live" |
-| CSS or JS not loading | Make sure folder names are lowercase exactly: `styles`, `scripts`, `assets` |
-| Profile image not showing | Add a file at `assets/profile.jpg` (lowercase, exact name) |
-| Particles look laggy on phone | Lower `maxParticles` and `connectionDistance` in `scripts/particles.js` |
-| Changes pushed but not appearing | Hard refresh (Ctrl+Shift+R) — your browser is caching the old version |
+| 404 after pushing | Wait 2–3 min; check Settings → Pages shows "Your site is live" |
+| Assets not loading | Folders are case-sensitive on GitHub — match `styles`, `scripts`, `assets` exactly |
+| Profile / gallery images not showing | Confirm filenames in `assets/` match exactly what `index.html` references |
+| Map shows but no pins | Open browser console — usually a typo in `PLACES` (missing lat/lng) |
+| Particles laggy on phone | Lower `maxParticles` and `connectionDistance` in `scripts/particles.js` |
+| Changes pushed but old version showing | Hard refresh (Ctrl+Shift+R) — browser cache |
 
 ---
 
-Have fun, and good luck with the launch.
+Built with care. Have fun making it yours.
