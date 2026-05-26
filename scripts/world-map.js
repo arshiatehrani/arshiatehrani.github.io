@@ -19,11 +19,15 @@ window.initWorldMap = function (containerId, opts) {
         "esri/widgets/ScaleBar"
     ], function (Map, MapView, Graphic, GraphicsLayer, ScaleBar) {
 
-        // Two basemaps we'll toggle between
-        const MAP_BASEMAP = "dark-gray-vector";   // street / vector
-        const SAT_BASEMAP = "satellite";          // satellite imagery
+        // Two basemaps we'll toggle between (theme-aware)
+        function currentMapBasemap() {
+            return document.documentElement.getAttribute('data-theme') === 'light'
+                ? 'gray-vector'           // light fog map for light theme
+                : 'dark-gray-vector';     // dark map for dark theme
+        }
+        const SAT_BASEMAP = "satellite";
 
-        const map = new Map({ basemap: MAP_BASEMAP });
+        const map = new Map({ basemap: currentMapBasemap() });
 
         const view = new MapView({
             container: containerId,
@@ -59,8 +63,13 @@ window.initWorldMap = function (containerId, opts) {
         renderToggle(isSatellite);
         toggleBtn.addEventListener('click', () => {
             isSatellite = !isSatellite;
-            map.basemap = isSatellite ? SAT_BASEMAP : MAP_BASEMAP;
+            map.basemap = isSatellite ? SAT_BASEMAP : currentMapBasemap();
             renderToggle(isSatellite);
+        });
+
+        // Swap basemap when user toggles theme (unless currently on satellite)
+        window.addEventListener('themechange', () => {
+            if (!isSatellite) map.basemap = currentMapBasemap();
         });
         view.ui.add(toggleBtn, "top-right");
 

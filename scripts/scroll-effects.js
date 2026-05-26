@@ -33,7 +33,11 @@
         function rafLenis(time) { lenis.raf(time); requestAnimationFrame(rafLenis); }
         requestAnimationFrame(rafLenis);
 
-        // Make anchor links use Lenis so motion stays smooth
+        // Make anchor links use Lenis so motion stays smooth.
+        // POSITIVE offset = scroll a bit PAST the section's top edge so the
+        // section heading lands right under the navbar instead of way below it.
+        // Section internal padding-top is 8rem (~128px), navbar ~70px,
+        // so offset ≈ 80 lands the heading ~48px below the navbar — clean.
         document.querySelectorAll('a[href^="#"]').forEach((link) => {
             link.addEventListener('click', (e) => {
                 const href = link.getAttribute('href');
@@ -41,7 +45,7 @@
                 const target = document.querySelector(href);
                 if (!target) return;
                 e.preventDefault();
-                lenis.scrollTo(target, { offset: -70 });
+                lenis.scrollTo(target, { offset: 80 });
             });
         });
 

@@ -1,39 +1,113 @@
 /* ============================================================
    THEME — Oxford Blue + Foggy Lavender/Gray
-   Edit these to recolor the entire site.
+   Dark mode is the default. Light mode lives under
+   [data-theme="light"] further down. The same variables drive
+   particles.js (via getComputedStyle), so the network repaints
+   automatically when the user toggles themes.
    ============================================================ */
 :root {
-    /* Backgrounds */
-    --bg-primary: #050a18;          /* deep night */
+    /* ---- BACKGROUNDS (dark) ---- */
+    --bg-primary: #050a18;              /* deep night */
     --bg-secondary: #0a1428;
     --bg-card: rgba(20, 38, 68, 0.45);
     --bg-card-strong: rgba(15, 28, 55, 0.7);
+    --bg-navbar: rgba(5, 10, 24, 0.7);
+    --bg-navbar-clear: rgba(5, 10, 24, 0);
+    --bg-overlay: rgba(5, 10, 24, 0.85);    /* mobile menu, project cards bg */
+    --bg-overlay-strong: rgba(5, 10, 24, 0.98);
 
-    /* Text */
-    --text-primary: #eef2f8;
-    --text-secondary: #b8c3d8;
-    --text-muted: #7a89a8;
+    /* ---- TEXT (dark) ---- */
+    --text-primary: #f6f9fd;
+    --text-secondary: #dae2ee;
+    --text-muted: #a8b4ca;
+    --text-on-accent: #f6f9fd;          /* text placed ON the accent gradient */
 
-    /* Accents — Oxford Blue + fog */
-    --oxford: #002147;              /* official Oxford Blue */
-    --fog-blue: #4a7fb3;            /* mid foggy blue */
-    --fog-light: #9ab1c9;           /* light mist */
-    --fog-lavender: #b0a8c4;        /* lavender mist */
+    /* ---- ACCENTS (Oxford palette — used in both themes) ---- */
+    --oxford: #002147;
+    --fog-blue: #4a7fb3;
+    --fog-light: #9ab1c9;
+    --fog-lavender: #b0a8c4;
     --accent-primary: var(--fog-blue);
     --accent-secondary: var(--fog-lavender);
     --accent-gradient: linear-gradient(135deg, #002147 0%, #4a7fb3 45%, #b0a8c4 100%);
     --accent-gradient-soft: linear-gradient(135deg, rgba(0,33,71,0.85) 0%, rgba(74,127,179,0.75) 100%);
 
-    /* Borders + shadows */
+    /* ---- DECORATIVE GRADIENTS — these swap in light mode ---- */
+    --hero-name-gradient: linear-gradient(180deg, #ffffff 0%, #9ab1c9 100%);
+    --stat-gradient:      linear-gradient(135deg, #c8dcf2 0%, #e3d8ee 100%);
+    --label-accent:       #a8c2e0;       /* "01 About" number color */
+
+    /* ---- BORDERS / SHADOWS ---- */
     --border-color: rgba(232, 237, 248, 0.08);
     --border-strong: rgba(154, 177, 201, 0.25);
     --shadow-glow: 0 0 40px rgba(74, 127, 179, 0.18);
     --shadow-card: 0 20px 50px rgba(0, 12, 35, 0.5);
 
+    /* ---- AMBIENT OVERLAYS ---- */
+    --body-glow-1: rgba(0, 33, 71, 0.40);
+    --body-glow-2: rgba(176, 168, 196, 0.08);
+    --hero-glow: rgba(74, 127, 179, 0.18);
+
+    /* ---- PARTICLES — RGB triplets read by particles.js ---- */
+    --particle-near-rgb:        154, 177, 201;
+    --particle-near-accent-rgb: 200, 215, 240;
+    --particle-near-glow-rgb:   120, 165, 215;
+    --particle-mouse-rgb:       210, 225, 250;
+    --particle-back-rgb:         74, 127, 179;
+    --particle-back-accent-rgb: 176, 168, 196;
+    --particle-canvas-back-opacity: 0.55;
+    --particle-canvas-near-opacity: 0.80;
+
     --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --transition-slow: 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-theme: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
     --container-max: 1200px;
     --section-padding: 8rem 0;
+}
+
+/* ============================================================
+   LIGHT THEME — foggy gray bg, Oxford-navy text & particles
+   ============================================================ */
+[data-theme="light"] {
+    --bg-primary: #dde3ec;              /* light foggy gray */
+    --bg-secondary: #e6ecf3;
+    --bg-card: rgba(255, 255, 255, 0.55);
+    --bg-card-strong: rgba(255, 255, 255, 0.80);
+    --bg-navbar: rgba(221, 227, 236, 0.78);
+    --bg-navbar-clear: rgba(221, 227, 236, 0);
+    --bg-overlay: rgba(221, 227, 236, 0.92);
+    --bg-overlay-strong: rgba(221, 227, 236, 0.98);
+
+    --text-primary:   #002147;          /* Oxford navy */
+    --text-secondary: #1f3d62;
+    --text-muted:     #557092;
+    --text-on-accent: #f6f9fd;
+
+    --accent-gradient: linear-gradient(135deg, #002147 0%, #1e4f80 45%, #6a558a 100%);
+    --accent-gradient-soft: linear-gradient(135deg, rgba(0,33,71,0.95) 0%, rgba(30,79,128,0.85) 100%);
+
+    --hero-name-gradient: linear-gradient(180deg, #002147 0%, #4a7fb3 100%);
+    --stat-gradient:      linear-gradient(135deg, #002147 0%, #6a558a 100%);
+    --label-accent:       #1e4f80;
+
+    --border-color: rgba(0, 33, 71, 0.12);
+    --border-strong: rgba(0, 33, 71, 0.30);
+    --shadow-glow: 0 0 40px rgba(74, 127, 179, 0.30);
+    --shadow-card: 0 20px 50px rgba(0, 33, 71, 0.12);
+
+    --body-glow-1: rgba(255, 255, 255, 0.55);
+    --body-glow-2: rgba(176, 168, 196, 0.20);
+    --hero-glow:   rgba(74, 127, 179, 0.18);
+
+    /* Particles invert: navy / dark on the light fog */
+    --particle-near-rgb:         30, 60, 100;
+    --particle-near-accent-rgb:   0, 33, 71;
+    --particle-near-glow-rgb:    74, 127, 179;
+    --particle-mouse-rgb:         0, 33, 71;
+    --particle-back-rgb:         74, 127, 179;
+    --particle-back-accent-rgb: 100,  80, 130;
+    --particle-canvas-back-opacity: 0.45;
+    --particle-canvas-near-opacity: 0.70;
 }
 
 /* ============================================================
@@ -47,7 +121,7 @@
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: 80px;
+    scroll-padding-top: 0;          /* sections handle their own anchor offset via scroll-margin-top */
 }
 
 /* Lenis takes over scrolling — these styles let it work smoothly */
@@ -67,7 +141,7 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
-    /* keep the system cursor — the .cursor-glow is just an ambient halo */
+    transition: var(--transition-theme);   /* smooth fade when theme flips */
 }
 
 a {
@@ -103,8 +177,8 @@ img { max-width: 100%; display: block; }
     pointer-events: none;
 }
 
-#particle-canvas-back { z-index: -2; opacity: 0.7; }   /* distant layer */
-#particle-canvas      { z-index: -1; opacity: 1;   }   /* foreground layer */
+#particle-canvas-back { z-index: -2; opacity: var(--particle-canvas-back-opacity); }
+#particle-canvas      { z-index: -1; opacity: var(--particle-canvas-near-opacity); }
 
 /* Soft radial gradient overlay so particles fade in centre/depth */
 body::before {
@@ -112,10 +186,11 @@ body::before {
     position: fixed;
     inset: 0;
     background:
-        radial-gradient(ellipse at 20% 0%, rgba(0, 33, 71, 0.4) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 100%, rgba(176, 168, 196, 0.08) 0%, transparent 50%);
+        radial-gradient(ellipse at 20% 0%, var(--body-glow-1) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, var(--body-glow-2) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
+    transition: background 0.5s ease;
 }
 
 /* ============================================================
@@ -143,13 +218,13 @@ body::before {
     right: 0;
     z-index: 100;
     padding: 1.5rem 2rem;
-    background: rgba(5, 10, 24, 0);
+    background: var(--bg-navbar-clear);
     backdrop-filter: blur(0px);
     transition: all var(--transition);
 }
 
 .navbar.scrolled {
-    background: rgba(5, 10, 24, 0.7);
+    background: var(--bg-navbar);
     backdrop-filter: blur(20px) saturate(180%);
     padding: 1rem 2rem;
     border-bottom: 1px solid var(--border-color);
@@ -159,9 +234,10 @@ body::before {
     max-width: var(--container-max);
     margin: 0 auto;
     display: flex;
-    justify-content: space-between;
     align-items: center;
 }
+
+.nav-logo { margin-right: auto; }   /* push everything else to the right */
 
 .nav-logo {
     font-family: 'Playfair Display', serif;
@@ -221,6 +297,49 @@ body::before {
 }
 
 /* ============================================================
+   THEME TOGGLE BUTTON (sun / moon)
+   ============================================================ */
+.theme-toggle {
+    width: 38px;
+    height: 38px;
+    margin-left: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.95rem;
+    backdrop-filter: blur(8px);
+    transition: transform var(--transition), background var(--transition),
+                border-color var(--transition), color var(--transition);
+    flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px) rotate(8deg);
+    border-color: var(--fog-blue);
+    color: var(--fog-light);
+}
+
+.theme-toggle .icon-light { display: none; }
+.theme-toggle .icon-dark  { display: inline-block; }
+
+/* When site is in light mode, show the sun (click to go dark) */
+[data-theme="light"] .theme-toggle .icon-light { display: inline-block; }
+[data-theme="light"] .theme-toggle .icon-dark  { display: none; }
+
+/* Smooth icon swap */
+.theme-toggle i {
+    transition: transform 0.4s ease;
+}
+.theme-toggle:hover i {
+    transform: rotate(-20deg) scale(1.1);
+}
+
+/* ============================================================
    HERO
    ============================================================ */
 .hero {
@@ -241,7 +360,7 @@ body::before {
     transform: translate(-50%, -50%);
     width: 800px;
     height: 800px;
-    background: radial-gradient(circle, rgba(74, 127, 179, 0.18) 0%, transparent 65%);
+    background: radial-gradient(circle, var(--hero-glow) 0%, transparent 65%);
     pointer-events: none;
 }
 
@@ -268,7 +387,7 @@ body::before {
     line-height: 1;
     letter-spacing: -0.02em;
     margin-bottom: 1.5rem;
-    background: linear-gradient(180deg, #ffffff 0%, #9ab1c9 100%);
+    background: var(--hero-name-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -392,6 +511,10 @@ body::before {
 .section {
     padding: var(--section-padding);
     position: relative;
+    /* When the browser scrolls to a #section anchor, pretend the section
+       starts 80px above its real top edge so the heading lands just under
+       the navbar instead of well below it. Matches the Lenis offset. */
+    scroll-margin-top: -80px;
 }
 
 .container {
@@ -408,9 +531,12 @@ body::before {
 }
 
 .section-number {
-    color: var(--fog-blue);
+    color: var(--label-accent);         /* theme-aware: light-blue dark mode, navy-blue light mode */
     font-family: 'JetBrains Mono', monospace;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    opacity: 0.95;
 }
 
 .section-title {
@@ -512,9 +638,9 @@ body::before {
 .stat-number {
     display: block;
     font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
+    font-size: 2.6rem;
     font-weight: 700;
-    background: var(--accent-gradient);
+    background: var(--stat-gradient);   /* theme-aware: bright in dark, navy in light */
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -523,8 +649,9 @@ body::before {
 }
 
 .stat-label {
-    color: var(--text-muted);
-    font-size: 0.9rem;
+    color: var(--text-secondary);       /* brighter than --text-muted */
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
 }
 
 /* ============================================================
@@ -1093,7 +1220,7 @@ body::before {
     bottom: 1rem;
     left: 1rem;
     z-index: 40;
-    background: rgba(5, 10, 24, 0.85);
+    background: var(--bg-overlay);
     backdrop-filter: blur(12px);
     padding: 0.75rem 1rem;
     border-radius: 10px;
@@ -1144,7 +1271,7 @@ body::before {
     align-items: center;
     gap: 0.5rem;
     padding: 0.55rem 1.1rem;
-    background: rgba(5, 10, 24, 0.85);
+    background: var(--bg-overlay);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-strong);
     color: var(--text-primary);
@@ -1253,19 +1380,19 @@ body::before {
 }
 
 /* ============================================================
-   SCROLL REVEAL ANIMATIONS
+   SCROLL REVEAL ANIMATIONS — faster + snappier for smoother flow
    ============================================================ */
 .reveal,
 .reveal-left,
 .reveal-right {
     opacity: 0;
-    transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: opacity 0.55s ease-out, transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
     will-change: opacity, transform;
 }
 
-.reveal { transform: translateY(40px); }
-.reveal-left { transform: translateX(-60px); }
-.reveal-right { transform: translateX(60px); }
+.reveal { transform: translateY(28px); }                /* shorter travel */
+.reveal-left  { transform: translateX(-40px); }
+.reveal-right { transform: translateX(40px); }
 
 .reveal.visible,
 .reveal-left.visible,
@@ -1280,7 +1407,7 @@ body::before {
 .gallery-grid .gallery-item,
 .contact-grid .contact-card,
 .timeline .timeline-item {
-    transition-delay: calc(var(--stagger, 0) * 0.07s);
+    transition-delay: calc(var(--stagger, 0) * 0.04s);  /* shorter stagger so things appear quickly */
 }
 
 /* ============================================================
@@ -1300,7 +1427,7 @@ body::before {
         right: -100%;
         width: 75%;
         height: 100vh;
-        background: rgba(5, 10, 24, 0.98);
+        background: var(--bg-overlay-strong);
         backdrop-filter: blur(20px);
         flex-direction: column;
         justify-content: center;

@@ -7,12 +7,24 @@
     <title>Gallery | Your Name</title>
     <meta name="description" content="Photo gallery — research, travel, and life snapshots." />
 
+    <!-- Apply saved theme BEFORE CSS loads to avoid a flash -->
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('site-theme');
+                var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+                var theme = (saved === 'light' || saved === 'dark') ? saved : (prefersLight ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-    <link rel="stylesheet" href="styles/subpage.css?v=6" />
+    <link rel="stylesheet" href="styles/subpage.css?v=11" />
 </head>
 <body class="gallery-page">
     <!-- Header with back-to-home -->
@@ -21,8 +33,12 @@
             <i class="fas fa-arrow-left"></i> Back to portfolio
         </a>
         <h1 class="subpage-title">Gallery</h1>
-        <div class="subpage-spacer"></div>
+        <button class="theme-toggle" aria-label="Switch theme" title="Toggle light / dark">
+            <i class="fas fa-moon icon-dark" aria-hidden="true"></i>
+            <i class="fas fa-sun icon-light" aria-hidden="true"></i>
+        </button>
     </header>
+    <script src="scripts/theme.js?v=11"></script>
 
     <main class="gallery-main">
         <div class="gallery-intro">

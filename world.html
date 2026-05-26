@@ -7,6 +7,18 @@
     <title>World Experience | Your Name</title>
     <meta name="description" content="Places I've lived, worked, and traveled — interactive map." />
 
+    <!-- Apply saved theme BEFORE CSS loads to avoid a flash -->
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('site-theme');
+                var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+                var theme = (saved === 'light' || saved === 'dark') ? saved : (prefersLight ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+
     <!-- ArcGIS API -->
     <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" />
 
@@ -15,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-    <link rel="stylesheet" href="styles/subpage.css?v=6" />
+    <link rel="stylesheet" href="styles/subpage.css?v=11" />
 
     <script src="https://js.arcgis.com/4.29/"></script>
 </head>
@@ -25,7 +37,10 @@
             <i class="fas fa-arrow-left"></i> Back to portfolio
         </a>
         <h1 class="subpage-title">World Experience</h1>
-        <div class="subpage-spacer"></div>
+        <button class="theme-toggle" aria-label="Switch theme" title="Toggle light / dark">
+            <i class="fas fa-moon icon-dark" aria-hidden="true"></i>
+            <i class="fas fa-sun icon-light" aria-hidden="true"></i>
+        </button>
     </header>
 
     <div class="map-legend">
@@ -37,9 +52,11 @@
 
     <div id="viewDiv"></div>
 
+    <script src="scripts/theme.js?v=11"></script>
+
     <!-- Shared data + renderer (same files used by the main page embed) -->
-    <script src="scripts/world-data.js?v=6"></script>
-    <script src="scripts/world-map.js?v=6"></script>
+    <script src="scripts/world-data.js?v=11"></script>
+    <script src="scripts/world-map.js?v=11"></script>
     <script>
         // Wait for ArcGIS to be ready, then init the full-screen map
         if (typeof require !== 'undefined') {
