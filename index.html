@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- EDIT: Page title (shown in browser tab) -->
+    <title>Your Name | Portfolio</title>
+    <!-- EDIT: Meta description for SEO -->
+    <meta name="description" content="Personal portfolio of Your Name - Researcher, Engineer, and Builder." />
+
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- Icon library for tool/social icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+    <!-- Particle network canvas (interactive background) -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Custom cursor glow that follows the mouse -->
+    <div class="cursor-glow"></div>
+
+    <!-- Scroll progress bar at top -->
+    <div class="scroll-progress"></div>
+
+    <!-- ==================== NAVIGATION ==================== -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- EDIT: Your initials or short logo -->
+            <a href="#hero" class="nav-logo">YN.</a>
+            <ul class="nav-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#tools">Tools</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#publications">Publications</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <button class="nav-toggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==================== HERO SECTION ==================== -->
+    <section id="hero" class="hero">
+        <div class="hero-content">
+            <p class="hero-greeting reveal">Hello, I'm</p>
+            <!-- EDIT: Your full name -->
+            <h1 class="hero-name reveal">Your Name</h1>
+            <h2 class="hero-tagline reveal">
+                <span class="static-text">I'm a</span>
+                <span class="typed-text" id="typed-text"></span>
+                <span class="cursor-typed">|</span>
+            </h2>
+            <p class="hero-description reveal">
+                <!-- EDIT: A short one or two line intro about yourself -->
+                A brief, punchy intro line about who you are and what you do.
+                Replace this with something that captures your work and personality.
+            </p>
+            <div class="hero-buttons reveal">
+                <a href="#projects" class="btn btn-primary">View My Work</a>
+                <!-- EDIT: Link to your resume PDF (put the file in assets/) -->
+                <a href="assets/resume.pdf" class="btn btn-secondary" target="_blank" rel="noopener">
+                    <i class="fas fa-file-pdf"></i> Resume
+                </a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ==================== ABOUT SECTION ==================== -->
+    <section id="about" class="section about">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-number">01</span>
+                <h2 class="section-title">About Me</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="about-grid">
+                <div class="about-image reveal-left">
+                    <div class="image-wrapper">
+                        <!-- EDIT: Replace with your photo (put it in assets/profile.jpg) -->
+                        <img src="assets/profile.jpg" alt="Your Name" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                        <div class="image-placeholder">
+                            <i class="fas fa-user"></i>
+                            <span>Add assets/profile.jpg</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-text reveal-right">
+                    <!-- EDIT: Write a few paragraphs about yourself -->
+                    <p>
+                        Write a paragraph about your background, education, and what drives you.
+                        Mention where you study or work, your field of interest, and any unique
+                        perspective you bring to your work.
+                    </p>
+                    <p>
+                        A second paragraph can describe your research interests, what you are
+                        currently exploring, and what kinds of problems excite you. Keep it human
+                        and specific.
+                    </p>
+                    <p>
+                        End with what you're looking for - collaborations, opportunities,
+                        conversations - and a sense of where you want to head next.
+                    </p>
+                    <div class="about-stats">
+                        <div class="stat">
+                            <!-- EDIT: Quick stats about you -->
+                            <span class="stat-number" data-count="5">0</span>
+                            <span class="stat-label">Years of Experience</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" data-count="12">0</span>
+                            <span class="stat-label">Projects</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" data-count="4">0</span>
+                            <span class="stat-label">Publications</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TOOLS / SKILLS SECTION ==================== -->
+    <section id="tools" class="section tools">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-number">02</span>
+                <h2 class="section-title">Tools &amp; Technologies</h2>
+                <div class="section-line"></div>
+            </div>
+            <p class="section-subtitle reveal">Things I work with on a daily basis</p>
+
+            <!-- EDIT: Each .tool-card is one tool. Add or remove as needed.
+                 Find icon names here: https://fontawesome.com/icons or https://devicon.dev/ -->
+            <div class="tools-grid">
+                <div class="tool-card reveal">
+                    <i class="fab fa-python"></i>
+                    <span>Python</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fab fa-js"></i>
+                    <span>JavaScript</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fab fa-react"></i>
+                    <span>React</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fab fa-node-js"></i>
+                    <span>Node.js</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fab fa-git-alt"></i>
+                    <span>Git</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fab fa-docker"></i>
+                    <span>Docker</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fas fa-database"></i>
+                    <span>SQL</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fas fa-brain"></i>
+                    <span>PyTorch</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fab fa-aws"></i>
+                    <span>AWS</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fab fa-linux"></i>
+                    <span>Linux</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fas fa-code"></i>
+                    <span>MATLAB</span>
+                </div>
+                <div class="tool-card reveal">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Data Viz</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PROJECTS SECTION ==================== -->
+    <section id="projects" class="section projects">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-number">03</span>
+                <h2 class="section-title">Featured Projects</h2>
+                <div class="section-line"></div>
+            </div>
+            <p class="section-subtitle reveal">Selected work I'm proud of</p>
+
+            <!-- EDIT: Each .project-card is one project. Copy/paste to add more. -->
+            <div class="projects-grid">
+                <article class="project-card reveal">
+                    <div class="project-image">
+                        <div class="project-image-placeholder">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <!-- To use a real image, uncomment and update path:
+                        <img src="assets/project1.jpg" alt="Project 1" /> -->
+                    </div>
+                    <div class="project-content">
+                        <span class="project-category">Research</span>
+                        <h3 class="project-title">Project Title One</h3>
+                        <p class="project-description">
+                            A short description of what the project does, the problem it solves,
+                            and any interesting techniques you used. Keep it 2-3 sentences.
+                        </p>
+                        <div class="project-tags">
+                            <span>Python</span>
+                            <span>PyTorch</span>
+                            <span>NLP</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" target="_blank" rel="noopener" aria-label="GitHub">
+                                <i class="fab fa-github"></i> Code
+                            </a>
+                            <a href="#" target="_blank" rel="noopener" aria-label="Live demo">
+                                <i class="fas fa-external-link-alt"></i> Demo
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="project-card reveal">
+                    <div class="project-image">
+                        <div class="project-image-placeholder">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <span class="project-category">Web App</span>
+                        <h3 class="project-title">Project Title Two</h3>
+                        <p class="project-description">
+                            Description of your second project. Mention scale, impact, or anything
+                            measurable that demonstrates the result.
+                        </p>
+                        <div class="project-tags">
+                            <span>React</span>
+                            <span>Node.js</span>
+                            <span>MongoDB</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fab fa-github"></i> Code
+                            </a>
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fas fa-external-link-alt"></i> Demo
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="project-card reveal">
+                    <div class="project-image">
+                        <div class="project-image-placeholder">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <span class="project-category">ML / AI</span>
+                        <h3 class="project-title">Project Title Three</h3>
+                        <p class="project-description">
+                            Your third project description. You can keep going - add as many as
+                            you want by copying one of these card blocks.
+                        </p>
+                        <div class="project-tags">
+                            <span>TensorFlow</span>
+                            <span>Computer Vision</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fab fa-github"></i> Code
+                            </a>
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fas fa-file-alt"></i> Paper
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PUBLICATIONS SECTION ==================== -->
+    <section id="publications" class="section publications">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-number">04</span>
+                <h2 class="section-title">Publications</h2>
+                <div class="section-line"></div>
+            </div>
+            <p class="section-subtitle reveal">Peer-reviewed research &amp; preprints</p>
+
+            <!-- EDIT: Each .publication-item is one paper. -->
+            <div class="publications-list">
+                <article class="publication-item reveal">
+                    <div class="pub-year">2026</div>
+                    <div class="pub-content">
+                        <h3 class="pub-title">
+                            Title of your publication goes here, which can be quite long
+                        </h3>
+                        <p class="pub-authors">
+                            <strong>Your Name</strong>, Co-Author One, Co-Author Two
+                        </p>
+                        <p class="pub-venue">
+                            <em>Journal or Conference Name</em>, vol. 42, pp. 100-120
+                        </p>
+                        <div class="pub-links">
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fas fa-link"></i> DOI
+                            </a>
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fab fa-github"></i> Code
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="publication-item reveal">
+                    <div class="pub-year">2025</div>
+                    <div class="pub-content">
+                        <h3 class="pub-title">
+                            Another publication title - this is where your work shines
+                        </h3>
+                        <p class="pub-authors">
+                            Co-Author One, <strong>Your Name</strong>, Co-Author Two
+                        </p>
+                        <p class="pub-venue">
+                            <em>Conference Proceedings</em>, pp. 50-65
+                        </p>
+                        <div class="pub-links">
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fas fa-link"></i> DOI
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="publication-item reveal">
+                    <div class="pub-year">2024</div>
+                    <div class="pub-content">
+                        <h3 class="pub-title">
+                            Yet another paper you authored or co-authored
+                        </h3>
+                        <p class="pub-authors">
+                            <strong>Your Name</strong>, Co-Author
+                        </p>
+                        <p class="pub-venue">
+                            <em>arXiv preprint</em>, arXiv:2401.00000
+                        </p>
+                        <div class="pub-links">
+                            <a href="#" target="_blank" rel="noopener">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== CONTACT SECTION ==================== -->
+    <section id="contact" class="section contact">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-number">05</span>
+                <h2 class="section-title">Get In Touch</h2>
+                <div class="section-line"></div>
+            </div>
+            <p class="contact-intro reveal">
+                I'm always open to interesting conversations, collaborations, and opportunities.
+                Feel free to reach out.
+            </p>
+
+            <div class="contact-grid reveal">
+                <!-- EDIT: Update each link with your real URLs -->
+                <a href="mailto:your.email@example.com" class="contact-card">
+                    <i class="fas fa-envelope"></i>
+                    <span class="contact-label">Email</span>
+                    <span class="contact-value">your.email@example.com</span>
+                </a>
+                <a href="https://github.com/yourusername" target="_blank" rel="noopener" class="contact-card">
+                    <i class="fab fa-github"></i>
+                    <span class="contact-label">GitHub</span>
+                    <span class="contact-value">@yourusername</span>
+                </a>
+                <a href="https://linkedin.com/in/yourusername" target="_blank" rel="noopener" class="contact-card">
+                    <i class="fab fa-linkedin"></i>
+                    <span class="contact-label">LinkedIn</span>
+                    <span class="contact-value">/in/yourusername</span>
+                </a>
+                <a href="https://scholar.google.com/citations?user=YOURID" target="_blank" rel="noopener" class="contact-card">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span class="contact-label">Google Scholar</span>
+                    <span class="contact-value">Profile</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; <span id="current-year"></span> Your Name. Built with care.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="scripts/particles.js"></script>
+    <script src="scripts/scroll-effects.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+</html>
