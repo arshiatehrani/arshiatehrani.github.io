@@ -1471,18 +1471,21 @@ body::before {
 
     .nav-links {
         position: fixed;
-        top: 0.85rem;
+        top: 50%;
         right: 0.85rem;
-        bottom: 0.85rem;
-        height: auto;                    /* inset from edges → floating card look */
-        transform: translateX(calc(100% + 1.5rem));   /* slide off to the right */
+        bottom: auto;                    /* don't pin bottom — lets height follow content */
+        height: auto;
+        max-height: calc(100dvh - 1.7rem); /* never taller than the viewport */
+        overflow-y: auto;                /* scroll inside the card on very small screens */
+        -webkit-overflow-scrolling: touch;
+        transform: translate(calc(100% + 1.5rem), -50%); /* off-screen + vertically centred */
         width: 60%;
         max-width: 240px;
         min-width: 195px;
         background: var(--bg-overlay-strong);
         backdrop-filter: blur(20px);
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;     /* stack from top so every link stays inside the card */
         align-items: center;
         gap: 1.55rem;
         transition: transform 0.38s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -1491,9 +1494,17 @@ body::before {
         z-index: 105;
         padding: 2rem 1.2rem;
         box-shadow: -10px 18px 50px rgba(0, 0, 0, 0.45);
+        box-sizing: border-box;
     }
 
-    .nav-links.active { transform: translateX(0); }
+    .nav-links.active { transform: translate(0, -50%); }
+
+    .nav-links li {
+        width: 100%;
+        text-align: center;
+        flex-shrink: 0;              /* never collapse — keeps every link inside the card */
+    }
+
     .nav-toggle { display: flex; }
 
     /* Backdrop behind the drawer — tap to dismiss */
