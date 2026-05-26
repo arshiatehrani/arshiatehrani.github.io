@@ -843,16 +843,16 @@ body::before {
     margin-top: 1rem;
 }
 
-/* Tool brand colors — matched to devicon logo colors on the card */
-.tool-brand-python      { --brand-color: #FFD43B; }   /* Python yellow */
-.tool-brand-cplusplus   { --brand-color: #00599C; }   /* C++ blue */
-.tool-brand-matlab      { --brand-color: #E16737; }   /* MATLAB orange */
-.tool-brand-pytorch     { --brand-color: #EE4C2C; }   /* PyTorch red-orange */
-.tool-brand-tensorflow  { --brand-color: #FF6F00; }   /* TensorFlow orange */
-.tool-brand-scikitlearn { --brand-color: #F9C74F; }   /* scikit-learn yellow */
-.tool-brand-linux       { --brand-color: #000000; }   /* Linux tux black */
-.tool-brand-docker      { --brand-color: #2496ED; }   /* Docker blue */
-.tool-brand-git         { --brand-color: #F05032; }   /* Git orange */
+/* Tool brand colors — from devicon v2.16 (matches colored icons on each card) */
+.tool-brand-python      { --brand-color: #ffd845; }
+.tool-brand-cplusplus   { --brand-color: #004482; }
+.tool-brand-matlab      { --brand-color: #6dd0c7; }
+.tool-brand-pytorch     { --brand-color: #EE4C2C; }
+.tool-brand-tensorflow  { --brand-color: #ff6f00; }
+.tool-brand-scikitlearn { --brand-color: #f89939; }
+.tool-brand-linux       { --brand-color: #000000; }
+.tool-brand-docker      { --brand-color: #019bc6; }
+.tool-brand-git         { --brand-color: #f34f29; }
 
 [data-theme="dark"] .tool-brand-linux { --brand-color: #d8d8d8; } /* visible on dark bg */
 
