@@ -64,8 +64,8 @@
             entry.target.classList.toggle('visible', entry.isIntersecting);
         });
     }, {
-        threshold: 0.12,
-        rootMargin: '0px 0px -80px 0px',
+        threshold: 0.08,                            // fires sooner when item enters view
+        rootMargin: '0px 0px -40px 0px',            // smaller bottom inset = earlier trigger
     });
 
     revealEls.forEach((el) => revealObserver.observe(el));

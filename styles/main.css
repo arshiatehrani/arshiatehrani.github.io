@@ -1363,16 +1363,38 @@ body::before {
 
 .contact-card:hover {
     transform: translateY(-8px);
-    border-color: var(--fog-blue);
-    box-shadow: 0 15px 40px rgba(74, 127, 179, 0.25);
+    /* Border + glow adopt the brand color on hover. The color-mix gives a soft
+       tinted shadow without manually defining an rgba per brand. */
+    border-color: var(--brand-color, var(--fog-blue));
+    box-shadow: 0 15px 40px color-mix(in srgb, var(--brand-color, var(--fog-blue)) 28%, transparent);
 }
+
+.contact-card:hover i {
+    /* Slight brighten on hover so the brand color pops a touch more */
+    filter: brightness(1.15) saturate(1.1);
+}
+
+/* Each brand class sets its own --brand-color; falls back to the accent
+   gradient for any card without one. */
+.contact-card.brand-email    { --brand-color: #EA4335; }   /* Gmail red */
+.contact-card.brand-github   { --brand-color: var(--text-primary); }  /* GitHub uses black on light / white on dark */
+.contact-card.brand-linkedin { --brand-color: #0A66C2; }
+.contact-card.brand-scholar  { --brand-color: #4285F4; }   /* Google Blue */
+.contact-card.brand-telegram { --brand-color: #229ED9; }
+.contact-card.brand-overleaf { --brand-color: #47A141; }   /* Overleaf green */
+.contact-card.brand-spotify  { --brand-color: #1DB954; }   /* Spotify green */
+.contact-card.brand-world    { --brand-color: #2BB7C9; }   /* Globe teal */
 
 .contact-card i {
     font-size: 2rem;
-    background: var(--accent-gradient);
+    /* Branded cards use a solid brand color; un-branded keep the original
+       accent gradient (kept here as a clean fallback). */
+    color: var(--brand-color, transparent);
+    background: var(--brand-color, var(--accent-gradient));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    transition: filter var(--transition);
 }
 
 .contact-label {
@@ -1401,19 +1423,20 @@ body::before {
 }
 
 /* ============================================================
-   SCROLL REVEAL ANIMATIONS — faster + snappier for smoother flow
+   SCROLL REVEAL ANIMATIONS — quick & smooth
+   Designed so even fast scrollers see each item complete its reveal.
    ============================================================ */
 .reveal,
 .reveal-left,
 .reveal-right {
     opacity: 0;
-    transition: opacity 0.55s ease-out, transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+    transition: opacity 0.38s ease-out, transform 0.38s cubic-bezier(0.22, 0.61, 0.36, 1);
     will-change: opacity, transform;
 }
 
-.reveal { transform: translateY(28px); }                /* shorter travel */
-.reveal-left  { transform: translateX(-40px); }
-.reveal-right { transform: translateX(40px); }
+.reveal { transform: translateY(18px); }                /* shorter travel — snappier */
+.reveal-left  { transform: translateX(-26px); }
+.reveal-right { transform: translateX(26px); }
 
 .reveal.visible,
 .reveal-left.visible,
@@ -1428,7 +1451,7 @@ body::before {
 .gallery-grid .gallery-item,
 .contact-grid .contact-card,
 .timeline .timeline-item {
-    transition-delay: calc(var(--stagger, 0) * 0.04s);  /* shorter stagger so things appear quickly */
+    transition-delay: calc(var(--stagger, 0) * 0.025s); /* tight stagger so groups complete quickly */
 }
 
 /* ============================================================
@@ -1448,24 +1471,29 @@ body::before {
 
     .nav-links {
         position: fixed;
-        top: 0;
-        right: -100%;
-        width: 78%;
-        max-width: 360px;
-        height: 100vh;
+        top: 0.85rem;
+        right: 0.85rem;
+        bottom: 0.85rem;
+        height: auto;                    /* inset from edges → floating card look */
+        transform: translateX(calc(100% + 1.5rem));   /* slide off to the right */
+        width: 60%;
+        max-width: 240px;
+        min-width: 195px;
         background: var(--bg-overlay-strong);
         backdrop-filter: blur(20px);
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        gap: 1.8rem;
-        transition: right var(--transition);
-        border-left: 1px solid var(--border-color);
-        z-index: 105;                    /* below the close button but above page */
-        padding: 2rem;
+        gap: 1.55rem;
+        transition: transform 0.38s cubic-bezier(0.22, 0.61, 0.36, 1);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        z-index: 105;
+        padding: 2rem 1.2rem;
+        box-shadow: -10px 18px 50px rgba(0, 0, 0, 0.45);
     }
 
-    .nav-links.active { right: 0; }
+    .nav-links.active { transform: translateX(0); }
     .nav-toggle { display: flex; }
 
     /* Backdrop behind the drawer — tap to dismiss */
