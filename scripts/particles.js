@@ -103,18 +103,22 @@
             const angle = Math.random() * Math.PI * 2;
             const speed = config.minSpeed + Math.random() * (config.maxSpeed - config.minSpeed);
             const isAccent = Math.random() < config.accentRatio;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
             return {
                 x: Math.random() * width,
                 y: Math.random() * height,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
+                vx: vx,
+                vy: vy,
+                baseVx: vx,                                  // remembered for damping-back
+                baseVy: vy,
                 r: isAccent
                     ? config.minRadius + Math.random() * (config.maxRadius - config.minRadius) * 1.8
                     : config.minRadius + Math.random() * (config.maxRadius - config.minRadius),
                 accent: isAccent,
                 twinkle: Math.random() * Math.PI * 2,
                 twinkleSpeed: 0.015 + Math.random() * 0.030,
-                baseOpacity: 0.30 + Math.random() * 0.30,        // dimmer base
+                baseOpacity: 0.30 + Math.random() * 0.30,
             };
         }
 
@@ -125,6 +129,9 @@
             p.y -= scrollDelta * (config.parallaxFactor || 0);
             p.twinkle += p.twinkleSpeed;
 
+            // Cursor interaction — TANGENTIAL nudge to velocity (swirl around cursor).
+            // This makes nearby particles curve past the cursor instead of being
+            // pushed away. No "empty bubble", no fleeing, just visible motion.
             if (config.reactsToMouse && mouse.active) {
                 const dx = p.x - mouse.x;
                 const dy = p.y - mouse.y;
@@ -133,21 +140,39 @@
                 if (distSq < infl * infl && distSq > 0) {
                     const dist = Math.sqrt(distSq);
                     const t = 1 - dist / infl;             // 0 at edge, 1 at cursor
-                    // easeOut: strong near cursor, smooth falloff. Antigravity-style "shockwave".
-                    const eased = config.forceFalloff === 'easeOut'
-                        ? (t * t * (3 - 2 * t))            // smoothstep
-                        : t;                                // linear (legacy)
-                    const force = eased * config.mouseForce;
-                    p.x += (dx / dist) * force;
-                    p.y += (dy / dist) * force;
+                    const eased = t * t * (3 - 2 * t);     // smoothstep
+                    const kick = eased * config.mouseForce * 0.10;
+                    // Perpendicular to (dx, dy) → tangential = swirl direction
+                    p.vx += (-dy / dist) * kick;
+                    p.vy += ( dx / dist) * kick;
                 }
             }
 
-            // wrap edges so the field is endless
-            if (p.x < -30) p.x = width + 30;
-            if (p.x > width + 30) p.x = -30;
-            if (p.y < -30) p.y = height + 30;
-            if (p.y > height + 30) p.y = -30;
+            // Damp velocity back toward natural drift each frame.
+            // Prevents runaway speeds and means particles ALWAYS return to their
+            // baseline trajectory once the cursor moves away.
+            const damp = 0.04;
+            p.vx += (p.baseVx - p.vx) * damp;
+            p.vy += (p.baseVy - p.vy) * damp;
+
+            // Wrap edges with SCATTER. When a particle leaves at one edge it
+            // re-enters at a random spot on the opposite edge (random X and a
+            // randomized Y band) — this breaks up the "horizontal line of new
+            // particles" artifact that appeared on fast scrolls.
+            if (p.x < -30) {
+                p.x = width + 30;
+                p.y = Math.random() * height;
+            } else if (p.x > width + 30) {
+                p.x = -30;
+                p.y = Math.random() * height;
+            }
+            if (p.y < -30) {
+                p.y = height + 30 + Math.random() * 120;     // 30-150px below screen
+                p.x = Math.random() * width;
+            } else if (p.y > height + 30) {
+                p.y = -30 - Math.random() * 120;
+                p.x = Math.random() * width;
+            }
         }
 
         /* ---------- SPATIAL HASH CONNECTION CHECK ----------
@@ -261,30 +286,28 @@
        LAYER CONFIGS — edit density / sizes / parallax here
        ============================================================ */
 
-    // NEAR — foreground, denser, fast drift, strong cursor influence
+    // NEAR — foreground, fast drift, big swirl radius
     const NEAR_CONFIG = {
         density: 0.00055,
         maxParticles: 620,
-        minSpeed: 0.30,                                 // visibly drifting
+        minSpeed: 0.30,
         maxSpeed: 1.05,
         minRadius: 1.4,
         maxRadius: 2.8,
         connectionDistance: 130,
         accentRatio: 0.18,
         drawConnections: true,
-        drawMouseLines: false,                          // <- no spider-web from cursor
         drawGlow: true,
-        parallaxFactor: 0,                              // disabled — fixes the "horizontal line on scroll" artifact
+        parallaxFactor: 0.18,                           // gentle scroll-coupled motion
         colors: NEAR_COLORS,
         lineOpacity: 0.32,
         lineWidth: 0.8,
         reactsToMouse: true,
-        mouseInfluence: 460,                            // huge interaction radius
-        mouseForce: 5.5,                                // BOLD push — Antigravity feel
-        forceFalloff: 'easeOut',                        // smoother, more "explosive" near the center
+        mouseInfluence: 460,                            // big "felt" radius
+        mouseForce: 6.0,                                // strong swirl impulse (tangential, not radial)
     };
 
-    // BACK — distant, slower, also reactive (creates depth)
+    // BACK — distant, slower, gentler swirl
     const BACK_CONFIG = {
         density: 0.00030,
         maxParticles: 360,
@@ -295,16 +318,14 @@
         connectionDistance: 95,
         accentRatio: 0.10,
         drawConnections: true,
-        drawMouseLines: false,
         drawGlow: false,
-        parallaxFactor: 0,                              // disabled
+        parallaxFactor: 0.09,                           // slower scroll-coupling (depth)
         colors: BACK_COLORS,
         lineOpacity: 0.22,
         lineWidth: 0.55,
         reactsToMouse: true,
         mouseInfluence: 380,
-        mouseForce: 2.4,
-        forceFalloff: 'easeOut',
+        mouseForce: 2.8,
     };
 
     /* ============================================================
