@@ -49,16 +49,20 @@
         window.__lenis = lenis;
     }
 
-    /* ---------- 3. REVEAL OBSERVER ---------- */
+    /* ---------- 3. REVEAL OBSERVER ----------
+       Apple-style: when an element enters the viewport it animates IN,
+       when it leaves (scrolled past, above OR below) it animates OUT
+       so scrolling back triggers the animation again. */
     const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
     const revealObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                revealObserver.unobserve(entry.target);
-            }
+            // Toggle the `visible` class based on whether the element is currently in view.
+            entry.target.classList.toggle('visible', entry.isIntersecting);
         });
-    }, { threshold: 0.12, rootMargin: '0px 0px -80px 0px' });
+    }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -80px 0px',
+    });
 
     revealEls.forEach((el) => revealObserver.observe(el));
 

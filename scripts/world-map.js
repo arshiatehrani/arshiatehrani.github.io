@@ -1,99 +1,147 @@
 /* ============================================================
-   WORLD EXPERIENCE MAP — Leaflet + dark "Carto" tiles
-   - Pan, zoom, click pins
-   - Custom themed popups (styled in main.css)
-   - EDIT: replace the PLACES array with your own pins
-
-   Pin types: 'lived' | 'visited' | 'work'
-   Lat / Long: get them from Google Maps (right-click a place → coordinates)
+   WORLD MAP RENDERER — used by both pages
+   Call window.initWorldMap('containerId', { initialZoom, etc. })
+   after the ArcGIS API has loaded. Reads CSV data from
+   window.STAYS / window.WELL_EXPLORED / window.TRAVELS.
    ============================================================ */
-(function () {
-    'use strict';
-    if (typeof L === 'undefined') return;            // Leaflet not loaded
-    const mapEl = document.getElementById('world-map');
-    if (!mapEl) return;
-
-    /* ---------- EDIT THIS LIST ---------- */
-    const PLACES = [
-        { name: 'Kingston, Canada', detail: 'MSc — Queen\'s University', type: 'work', lat: 44.2334, lng: -76.4940 },
-        { name: 'Tehran, Iran', detail: 'Hometown', type: 'lived', lat: 35.6892, lng: 51.3890 },
-        { name: 'Toronto, Canada', detail: 'Visited', type: 'visited', lat: 43.6532, lng: -79.3832 },
-        { name: 'Istanbul, Turkey', detail: 'Visited', type: 'visited', lat: 41.0082, lng: 28.9784 },
-        { name: 'Dubai, UAE', detail: 'Visited', type: 'visited', lat: 25.2048, lng: 55.2708 },
-        // Add more like:
-        // { name: 'City, Country', detail: 'What you did there', type: 'visited', lat: 0.0, lng: 0.0 },
-    ];
-
-    /* ---------- Pin colors (match site palette) ---------- */
-    const COLORS = {
-        lived:   { fill: '#4a7fb3', glow: 'rgba(74, 127, 179, 0.6)' },
-        visited: { fill: '#b0a8c4', glow: 'rgba(176, 168, 196, 0.6)' },
-        work:    { fill: '#9ab1c9', glow: 'rgba(154, 177, 201, 0.7)' },
-    };
-
-    /* ---------- Initialize map ---------- */
-    const map = L.map('world-map', {
-        center: [30, 15],
-        zoom: 2,
-        minZoom: 2,
-        maxZoom: 10,
-        worldCopyJump: true,
-        scrollWheelZoom: false,         // wheel scrolls page, not map — feels natural
-        attributionControl: true,
-    });
-
-    // Re-enable wheel zoom only when the user explicitly clicks into the map
-    map.on('focus', () => map.scrollWheelZoom.enable());
-    map.on('blur',  () => map.scrollWheelZoom.disable());
-    map.getContainer().addEventListener('click', () => map.scrollWheelZoom.enable());
-    map.getContainer().addEventListener('mouseleave', () => map.scrollWheelZoom.disable());
-
-    // Dark themed tiles — CartoDB Dark Matter (free)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19,
-    }).addTo(map);
-
-    /* ---------- Build pins ---------- */
-    function pinIcon(type) {
-        const c = COLORS[type] || COLORS.visited;
-        return L.divIcon({
-            className: 'world-pin',
-            html: `
-                <span class="world-pin-outer" style="background:${c.glow};">
-                    <span class="world-pin-inner" style="background:${c.fill};"></span>
-                </span>
-            `,
-            iconSize: [22, 22],
-            iconAnchor: [11, 11],
-        });
+window.initWorldMap = function (containerId, opts) {
+    opts = opts || {};
+    if (typeof require === 'undefined') {
+        console.warn('ArcGIS API not loaded yet');
+        return;
     }
 
-    PLACES.forEach((p) => {
-        const marker = L.marker([p.lat, p.lng], { icon: pinIcon(p.type) }).addTo(map);
-        marker.bindPopup(`<strong>${p.name}</strong>${p.detail || ''}`);
-    });
+    require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/Graphic",
+        "esri/layers/GraphicsLayer",
+        "esri/widgets/ScaleBar"
+    ], function (Map, MapView, Graphic, GraphicsLayer, ScaleBar) {
 
-    /* ---------- Pin styles (injected once) ---------- */
-    const style = document.createElement('style');
-    style.textContent = `
-        .world-pin { display:block; width:22px; height:22px; }
-        .world-pin-outer {
-            display:block; width:22px; height:22px;
-            border-radius:50%;
-            display:flex; align-items:center; justify-content:center;
-            box-shadow: 0 0 12px currentColor;
-            animation: pinPulse 2.2s ease-in-out infinite;
+        // Two basemaps we'll toggle between
+        const MAP_BASEMAP = "dark-gray-vector";   // street / vector
+        const SAT_BASEMAP = "satellite";          // satellite imagery
+
+        const map = new Map({ basemap: MAP_BASEMAP });
+
+        const view = new MapView({
+            container: containerId,
+            map: map,
+            zoom: opts.initialZoom || 2,
+            center: opts.center || [10, 25],
+            constraints: {
+                minZoom: opts.minZoom || 2,
+                snapToZoom: false
+            },
+            ui: { components: ["attribution", "zoom"] }
+        });
+
+        // Disable scroll-wheel zoom on small embedded views so page scrolls naturally.
+        if (opts.disableScrollZoom) {
+            view.on("mouse-wheel", (event) => event.stopPropagation());
         }
-        .world-pin-inner {
-            width:10px; height:10px; border-radius:50%;
-            border: 2px solid rgba(255,255,255,0.85);
+
+        /* ---------- Custom themed Satellite ↔ Map toggle (top-right) ---------- */
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'basemap-toggle-btn';
+        toggleBtn.setAttribute('aria-label', 'Toggle satellite view');
+        toggleBtn.setAttribute('title', 'Toggle satellite / map view');
+
+        function renderToggle(isSatellite) {
+            toggleBtn.innerHTML = isSatellite
+                ? '<i class="fas fa-map"></i><span>Map</span>'
+                : '<i class="fas fa-satellite"></i><span>Satellite</span>';
+            toggleBtn.classList.toggle('is-satellite', isSatellite);
         }
-        @keyframes pinPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.15); opacity: 0.85; }
+
+        let isSatellite = false;
+        renderToggle(isSatellite);
+        toggleBtn.addEventListener('click', () => {
+            isSatellite = !isSatellite;
+            map.basemap = isSatellite ? SAT_BASEMAP : MAP_BASEMAP;
+            renderToggle(isSatellite);
+        });
+        view.ui.add(toggleBtn, "top-right");
+
+        // Scale bar (only on the full-screen view; clutters the embed otherwise)
+        if (opts.showScaleBar !== false) {
+            view.ui.add(new ScaleBar({ view: view, unit: "metric" }), "bottom-left");
         }
-    `;
-    document.head.appendChild(style);
-})();
+
+        const layer = new GraphicsLayer();
+        map.add(layer);
+
+        /* Pin colors — match the Oxford Blue / fog theme */
+        const COLOR_STAYS    = [ 74, 127, 179, 0.95 ];
+        const COLOR_EXPLORED = [176, 168, 196, 0.90 ];
+        const COLOR_TRAVELS  = [154, 177, 201, 0.65 ];
+
+        function stayMarker(size) {
+            return { type: "simple-marker", color: COLOR_STAYS, style: "square",
+                size: size, outline: { color: [255,255,255], width: 1.2 } };
+        }
+        function exploredMarker(size) {
+            return { type: "simple-marker", color: COLOR_EXPLORED, style: "square",
+                size: size, outline: { color: [255,255,255], width: 1.2 } };
+        }
+        function travelMarker(size) {
+            return { type: "simple-marker", color: COLOR_TRAVELS, style: "circle",
+                size: size, outline: { color: [255,255,255], width: 1 } };
+        }
+
+        function addCsv(csv, markerFn, category) {
+            if (!csv) return;
+            const rows = csv.split('\n').slice(1);
+            rows.forEach((row) => {
+                const cols = row.split(',');
+                if (cols.length < 3) return;
+                const city = cols[0].trim();
+                const lat = parseFloat(cols[1]);
+                const lng = parseFloat(cols[2]);
+                if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+                const g = new Graphic({
+                    geometry: { type: "point", longitude: lng, latitude: lat },
+                    symbol: markerFn(12),
+                    attributes: { city, category }
+                });
+                g.category = category;
+                layer.add(g);
+            });
+        }
+
+        addCsv(window.STAYS,         stayMarker,     "stay");
+        addCsv(window.WELL_EXPLORED, exploredMarker, "explored");
+        addCsv(window.TRAVELS,       travelMarker,   "travel");
+
+        /* Popup on click */
+        view.popup.dockEnabled = false;
+        view.on("click", (event) => {
+            view.hitTest(event).then((response) => {
+                const hit = response.results.find(r =>
+                    r.graphic && r.graphic.attributes && r.graphic.attributes.city);
+                if (!hit) return;
+                const g = hit.graphic;
+                view.openPopup({
+                    title: g.attributes.city,
+                    content: `<span style="font-family:'JetBrains Mono', monospace; color:#9ab1c9;">${g.attributes.category.toUpperCase()}</span>`,
+                    location: event.mapPoint
+                });
+            });
+        });
+
+        /* Auto-scale pin sizes with zoom */
+        view.watch("scale", () => {
+            const scale = view.scale;
+            const stayBase = 13 * Math.pow(45000000 / scale, 0.3);
+            const travelBase = 9 * Math.pow(45000000 / scale, 0.3);
+
+            layer.graphics.forEach((g) => {
+                if (g.category === "stay")          g.symbol = stayMarker(stayBase);
+                else if (g.category === "explored") g.symbol = exploredMarker(stayBase);
+                else                                g.symbol = travelMarker(travelBase);
+            });
+        });
+    });
+};

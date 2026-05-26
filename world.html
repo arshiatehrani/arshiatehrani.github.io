@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- EDIT: Page title -->
+    <title>World Experience | Your Name</title>
+    <meta name="description" content="Places I've lived, worked, and traveled — interactive map." />
+
+    <!-- ArcGIS API -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <link rel="stylesheet" href="styles/subpage.css?v=6" />
+
+    <script src="https://js.arcgis.com/4.29/"></script>
+</head>
+<body>
+    <header class="subpage-header">
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to portfolio
+        </a>
+        <h1 class="subpage-title">World Experience</h1>
+        <div class="subpage-spacer"></div>
+    </header>
+
+    <div class="map-legend">
+        <div class="legend-row"><span class="legend-square stays"></span> Lived</div>
+        <div class="legend-row"><span class="legend-square explored"></span> Well explored</div>
+        <div class="legend-row"><span class="legend-circle travels"></span> Visited / Traveled</div>
+        <p class="legend-hint">Scroll to zoom · drag to pan · click marker for city · use the basemap toggle (bottom-right) for satellite</p>
+    </div>
+
+    <div id="viewDiv"></div>
+
+    <!-- Shared data + renderer (same files used by the main page embed) -->
+    <script src="scripts/world-data.js?v=6"></script>
+    <script src="scripts/world-map.js?v=6"></script>
+    <script>
+        // Wait for ArcGIS to be ready, then init the full-screen map
+        if (typeof require !== 'undefined') {
+            window.initWorldMap('viewDiv', {
+                initialZoom: 3,
+                center: [0, 25],
+                showScaleBar: true,
+                disableScrollZoom: false
+            });
+        }
+    </script>
+</body>
+</html>

@@ -8,7 +8,7 @@
     <!-- EDIT: Meta description for SEO -->
     <meta name="description" content="Personal portfolio - AI Researcher and Engineer." />
 
-    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/main.css?v=7" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
@@ -17,16 +17,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.min.css" />
 
-    <!-- Leaflet (interactive world map) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- ArcGIS API (for the embedded world map) -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" />
+    <script src="https://js.arcgis.com/4.29/"></script>
 </head>
 <body>
-    <!-- Layered particle canvases for depth -->
+    <!-- Two layered particle canvases — back (distant) + near (foreground) -->
     <canvas id="particle-canvas-back"></canvas>
     <canvas id="particle-canvas"></canvas>
-
-    <!-- Ambient mouse glow (soft halo, does NOT hide the system cursor) -->
-    <div class="cursor-glow"></div>
 
     <!-- Scroll progress bar at top -->
     <div class="scroll-progress"></div>
@@ -437,7 +435,7 @@
         </div>
     </section>
 
-    <!-- ==================== GALLERY ==================== -->
+    <!-- ==================== GALLERY (embedded preview + expand) ==================== -->
     <section id="gallery" class="section gallery-section">
         <div class="container">
             <div class="section-header reveal">
@@ -445,9 +443,15 @@
                 <h2 class="section-title">Gallery</h2>
                 <div class="section-line"></div>
             </div>
-            <p class="section-subtitle reveal">Moments and snapshots</p>
+            <div class="section-toolbar reveal">
+                <p class="section-subtitle no-mb">Moments and snapshots — hover for caption, click to expand</p>
+                <a href="gallery.html" class="expand-btn">
+                    <i class="fas fa-expand"></i> Open full gallery
+                </a>
+            </div>
 
-            <!-- EDIT: Each .gallery-item is one photo. Put images in assets/gallery/ -->
+            <!-- EDIT: Each .gallery-item is one photo. Put images in assets/gallery/.
+                 The full gallery on gallery.html can show more photos with filters + lightbox. -->
             <div class="gallery-grid">
                 <figure class="gallery-item reveal">
                     <div class="gallery-image">
@@ -455,7 +459,7 @@
                     </div>
                     <figcaption>
                         <h4>Photo Title One</h4>
-                        <p>A short description of what's in this photo, where it was taken, or why it matters.</p>
+                        <p>A short description of what's in this photo.</p>
                     </figcaption>
                 </figure>
 
@@ -465,7 +469,7 @@
                     </div>
                     <figcaption>
                         <h4>Photo Title Two</h4>
-                        <p>Another caption. Keep them human and specific - tell a small story.</p>
+                        <p>Another caption — keep them human and specific.</p>
                     </figcaption>
                 </figure>
 
@@ -475,7 +479,7 @@
                     </div>
                     <figcaption>
                         <h4>Photo Title Three</h4>
-                        <p>Caption text goes here. Duplicate this figure block to add more photos.</p>
+                        <p>Duplicate a .gallery-item block to add more.</p>
                     </figcaption>
                 </figure>
 
@@ -485,14 +489,14 @@
                     </div>
                     <figcaption>
                         <h4>Photo Title Four</h4>
-                        <p>One more sample caption to show the layout.</p>
+                        <p>One more sample caption.</p>
                     </figcaption>
                 </figure>
             </div>
         </div>
     </section>
 
-    <!-- ==================== WORLD EXPERIENCE MAP ==================== -->
+    <!-- ==================== WORLD EXPERIENCE (embedded map + expand) ==================== -->
     <section id="world" class="section world-section">
         <div class="container">
             <div class="section-header reveal">
@@ -500,14 +504,19 @@
                 <h2 class="section-title">World Experience</h2>
                 <div class="section-line"></div>
             </div>
-            <p class="section-subtitle reveal">Places I've lived, worked, and explored — pan, zoom, click the pins</p>
+            <div class="section-toolbar reveal">
+                <p class="section-subtitle no-mb">Places I've lived, explored, and visited — pan, zoom, click pins</p>
+                <a href="world.html" class="expand-btn">
+                    <i class="fas fa-expand"></i> Open full map
+                </a>
+            </div>
 
             <div class="world-map-wrapper reveal">
-                <div id="world-map"></div>
-                <div class="world-legend">
-                    <div><span class="legend-dot lived"></span> Lived</div>
-                    <div><span class="legend-dot visited"></span> Visited</div>
-                    <div><span class="legend-dot work"></span> Work / Study</div>
+                <div id="world-map-embed"></div>
+                <div class="world-legend-embed">
+                    <div class="legend-row"><span class="legend-square stays"></span> Lived</div>
+                    <div class="legend-row"><span class="legend-square explored"></span> Well explored</div>
+                    <div class="legend-row"><span class="legend-circle travels"></span> Visited</div>
                 </div>
             </div>
         </div>
@@ -574,20 +583,42 @@
     <!-- ==================== FOOTER ==================== -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; <span id="current-year"></span> Your Name. Built with care.</p>
+            <!-- EDIT: change data-start-year to the year you first launched the site.
+                 The "current" year is always today's year (auto-updates forever). -->
+            <p>&copy; <span id="copyright" data-start-year="2026"></span> Your Name. Built with care.</p>
         </div>
     </footer>
-
-    <!-- Leaflet JS (for the world map) -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <!-- Lenis smooth scroll (cinematic feel) -->
     <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.1.13/bundled/lenis.min.js"></script>
 
-    <!-- App scripts -->
-    <script src="scripts/particles.js"></script>
-    <script src="scripts/scroll-effects.js"></script>
-    <script src="scripts/world-map.js"></script>
-    <script src="scripts/main.js"></script>
+    <!-- World map data + renderer (shared with world.html) -->
+    <script src="scripts/world-data.js?v=7"></script>
+    <script src="scripts/world-map.js?v=7"></script>
+
+    <!-- App scripts (cache-busted with ?v= so browsers always get the latest) -->
+    <script src="scripts/particles.js?v=8"></script>
+    <script src="scripts/scroll-effects.js?v=8"></script>
+    <script src="scripts/main.js?v=8"></script>
+
+    <!-- Initialize the embedded world map once ArcGIS is ready -->
+    <script>
+        (function () {
+            // ArcGIS loads asynchronously; wait until `require` is available
+            function tryInit() {
+                if (typeof require === 'undefined' || typeof window.initWorldMap !== 'function') {
+                    setTimeout(tryInit, 100);
+                    return;
+                }
+                window.initWorldMap('world-map-embed', {
+                    initialZoom: 2,
+                    center: [15, 25],
+                    showScaleBar: false,         // cleaner for the embed
+                    disableScrollZoom: true       // let the page scroll over the map
+                });
+            }
+            tryInit();
+        })();
+    </script>
 </body>
 </html>

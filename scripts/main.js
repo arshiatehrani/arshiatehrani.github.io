@@ -60,31 +60,7 @@
         });
     }
 
-    /* ---------- 3. AMBIENT CURSOR GLOW ----------
-       NOTE: We do NOT hide the system cursor anymore.
-       The glow is a soft halo following the mouse, behind everything. */
-    const cursorGlow = document.querySelector('.cursor-glow');
-    if (cursorGlow) {
-        let targetX = window.innerWidth / 2;
-        let targetY = window.innerHeight / 2;
-        let currentX = targetX;
-        let currentY = targetY;
-
-        window.addEventListener('mousemove', (e) => {
-            targetX = e.clientX;
-            targetY = e.clientY;
-        });
-
-        function animate() {
-            currentX += (targetX - currentX) * 0.10;
-            currentY += (targetY - currentY) * 0.10;
-            cursorGlow.style.transform = `translate(${currentX}px, ${currentY}px) translate(-50%, -50%)`;
-            requestAnimationFrame(animate);
-        }
-        animate();
-    }
-
-    /* ---------- 4. TIMELINE EXPAND ---------- */
+    /* ---------- 3. TIMELINE EXPAND ---------- */
     document.querySelectorAll('.timeline-card').forEach((card) => {
         card.addEventListener('click', () => {
             const expanded = card.getAttribute('aria-expanded') === 'true';
@@ -92,7 +68,23 @@
         });
     });
 
-    /* ---------- 5. FOOTER YEAR ---------- */
+    /* ---------- 4. GALLERY THUMBS → open full gallery page ---------- */
+    document.querySelectorAll('.gallery-section .gallery-item').forEach((item) => {
+        item.addEventListener('click', () => {
+            window.location.href = 'gallery.html';
+        });
+    });
+
+    /* ---------- 5. FOOTER YEAR (auto-updates forever) ---------- */
+    // Shows "2026" if the site started this year, or "2026 – 2031" later.
+    const copyrightEl = document.getElementById('copyright');
+    if (copyrightEl) {
+        const start = parseInt(copyrightEl.dataset.startYear, 10) || new Date().getFullYear();
+        const now = new Date().getFullYear();
+        copyrightEl.textContent = (now > start) ? `${start} – ${now}` : `${now}`;
+    }
+
+    // Backward-compat: also fill the older single-year span if it still exists
     const yearEl = document.getElementById('current-year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 })();

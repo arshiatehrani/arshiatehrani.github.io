@@ -103,8 +103,8 @@ img { max-width: 100%; display: block; }
     pointer-events: none;
 }
 
-#particle-canvas-back { z-index: -2; opacity: 0.6; }
-#particle-canvas { z-index: -1; }
+#particle-canvas-back { z-index: -2; opacity: 0.7; }   /* distant layer */
+#particle-canvas      { z-index: -1; opacity: 1;   }   /* foreground layer */
 
 /* Soft radial gradient overlay so particles fade in centre/depth */
 body::before {
@@ -117,27 +117,6 @@ body::before {
     pointer-events: none;
     z-index: -1;
 }
-
-/* ============================================================
-   CURSOR GLOW (ambient halo — does NOT hide the system cursor)
-   ============================================================ */
-.cursor-glow {
-    position: fixed;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(74, 127, 179, 0.12) 0%, rgba(176, 168, 196, 0.04) 35%, transparent 70%);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 1;
-    transition: opacity 0.4s;
-    opacity: 0;
-    mix-blend-mode: screen;
-}
-
-body:hover .cursor-glow { opacity: 1; }
-
-@media (hover: none) { .cursor-glow { display: none; } }
 
 /* ============================================================
    SCROLL PROGRESS BAR (Oxford Blue → fog)
@@ -956,11 +935,57 @@ body:hover .cursor-glow { opacity: 1; }
 .pub-links a:hover { color: var(--fog-light); }
 
 /* ============================================================
-   GALLERY
+   SECTION TOOLBAR (subtitle + expand button on the right)
+   ============================================================ */
+.section-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.section-subtitle.no-mb { margin-bottom: 0; }
+
+.expand-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    backdrop-filter: blur(10px);
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.expand-btn:hover {
+    background: var(--accent-gradient);
+    border-color: transparent;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 33, 71, 0.5);
+}
+
+.expand-btn i {
+    transition: transform var(--transition);
+}
+
+.expand-btn:hover i { transform: scale(1.15); }
+
+/* ============================================================
+   GALLERY (embedded preview on main page)
    ============================================================ */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 1.5rem;
     margin-top: 1rem;
 }
@@ -974,6 +999,8 @@ body:hover .cursor-glow { opacity: 1; }
     backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
+    cursor: pointer;
+    position: relative;
 }
 
 .gallery-item:hover {
@@ -1030,7 +1057,7 @@ body:hover .cursor-glow { opacity: 1; }
 
 .gallery-item figcaption h4 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
     margin-bottom: 0.4rem;
     color: var(--text-primary);
@@ -1038,12 +1065,12 @@ body:hover .cursor-glow { opacity: 1; }
 
 .gallery-item figcaption p {
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     line-height: 1.5;
 }
 
 /* ============================================================
-   WORLD MAP
+   WORLD MAP (embedded on main page)
    ============================================================ */
 .world-map-wrapper {
     position: relative;
@@ -1052,83 +1079,106 @@ body:hover .cursor-glow { opacity: 1; }
     overflow: hidden;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-card);
-}
-
-#world-map {
-    width: 100%;
-    height: 540px;
     background: var(--bg-secondary);
 }
 
-/* Tint the map a touch toward our palette via overlay */
-#world-map::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0,33,71,0.05) 0%, transparent 50%);
-    pointer-events: none;
+#world-map-embed {
+    width: 100%;
+    height: 480px;
+    background: var(--bg-secondary);
 }
 
-.world-legend {
+.world-legend-embed {
     position: absolute;
     bottom: 1rem;
     left: 1rem;
-    z-index: 500;
+    z-index: 40;
     background: rgba(5, 10, 24, 0.85);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     padding: 0.75rem 1rem;
     border-radius: 10px;
     border: 1px solid var(--border-color);
-    display: flex;
-    gap: 1rem;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
     font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    pointer-events: none;
 }
 
-.world-legend > div { display: flex; align-items: center; gap: 0.4rem; }
+.world-legend-embed .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+.world-legend-embed .legend-row:last-child { margin-bottom: 0; }
 
-.legend-dot {
+.world-legend-embed .legend-square,
+.world-legend-embed .legend-circle {
     width: 10px;
     height: 10px;
-    border-radius: 50%;
-    display: inline-block;
+    border: 1px solid #fff;
+    flex-shrink: 0;
 }
+.world-legend-embed .legend-square { border-radius: 2px; }
+.world-legend-embed .legend-square.stays    { background: #4a7fb3; }
+.world-legend-embed .legend-square.explored { background: #b0a8c4; }
+.world-legend-embed .legend-circle.travels  { background: #9ab1c9; border-radius: 50%; opacity: 0.85; }
 
-.legend-dot.lived { background: #4a7fb3; box-shadow: 0 0 8px rgba(74, 127, 179, 0.8); }
-.legend-dot.visited { background: #b0a8c4; box-shadow: 0 0 8px rgba(176, 168, 196, 0.8); }
-.legend-dot.work { background: #9ab1c9; box-shadow: 0 0 8px rgba(154, 177, 201, 0.8); }
-
-/* Leaflet popup styling to match theme */
-.leaflet-popup-content-wrapper {
+/* Tint ArcGIS popup to fit theme on the embed too */
+.esri-popup__main-container {
     background: var(--bg-card-strong) !important;
-    backdrop-filter: blur(20px);
-    color: var(--text-primary) !important;
     border: 1px solid var(--border-strong);
     border-radius: 12px !important;
-    box-shadow: 0 10px 30px rgba(0, 12, 35, 0.6) !important;
+}
+.esri-popup__header-title {
+    font-family: 'Playfair Display', serif !important;
+    color: var(--fog-light) !important;
 }
 
-.leaflet-popup-content {
-    margin: 0.85rem 1.1rem !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 0.9rem !important;
-}
-
-.leaflet-popup-content strong {
-    display: block;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.05rem;
-    color: var(--fog-light);
-    margin-bottom: 0.25rem;
-}
-
-.leaflet-popup-tip {
-    background: var(--bg-card-strong) !important;
+/* ============================================================
+   CUSTOM BASEMAP TOGGLE BUTTON (Satellite / Map)
+   Rendered into the ArcGIS view's top-right corner.
+   ============================================================ */
+.basemap-toggle-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    background: rgba(5, 10, 24, 0.85);
+    backdrop-filter: blur(12px);
     border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 12, 35, 0.5);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    text-transform: uppercase;
 }
 
-.leaflet-container a { color: var(--fog-light) !important; }
+.basemap-toggle-btn:hover {
+    background: var(--accent-gradient);
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(74, 127, 179, 0.45);
+}
+
+.basemap-toggle-btn.is-satellite {
+    background: rgba(74, 127, 179, 0.25);
+    border-color: var(--fog-blue);
+    color: #fff;
+}
+
+.basemap-toggle-btn i {
+    font-size: 0.95rem;
+    color: var(--fog-light);
+}
+
+.basemap-toggle-btn:hover i,
+.basemap-toggle-btn.is-satellite i { color: #fff; }
 
 /* ============================================================
    CONTACT
@@ -1278,6 +1328,12 @@ body:hover .cursor-glow { opacity: 1; }
 
     .hero-buttons { flex-direction: column; align-items: center; }
     .btn { width: 100%; max-width: 280px; justify-content: center; }
+
+    .section-toolbar { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .expand-btn { width: 100%; justify-content: center; }
+
+    #world-map-embed { height: 360px; }
+    .world-legend-embed { font-size: 0.68rem; padding: 0.55rem 0.75rem; }
 
     #world-map { height: 400px; }
     .world-legend { font-size: 0.7rem; gap: 0.6rem; padding: 0.55rem 0.75rem; }

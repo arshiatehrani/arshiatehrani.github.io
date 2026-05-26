@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- EDIT: Page title -->
+    <title>Gallery | Your Name</title>
+    <meta name="description" content="Photo gallery — research, travel, and life snapshots." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <link rel="stylesheet" href="styles/subpage.css?v=6" />
+</head>
+<body class="gallery-page">
+    <!-- Header with back-to-home -->
+    <header class="subpage-header sticky">
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to portfolio
+        </a>
+        <h1 class="subpage-title">Gallery</h1>
+        <div class="subpage-spacer"></div>
+    </header>
+
+    <main class="gallery-main">
+        <div class="gallery-intro">
+            <p class="gallery-tagline">Moments, places, and the in-between.</p>
+
+            <!-- Category filter — clicks filter the grid -->
+            <div class="gallery-filters" role="tablist">
+                <button class="gallery-filter active" data-filter="all">All</button>
+                <button class="gallery-filter" data-filter="travel">Travel</button>
+                <button class="gallery-filter" data-filter="research">Research</button>
+                <button class="gallery-filter" data-filter="life">Life</button>
+            </div>
+        </div>
+
+        <!-- ==================== GALLERY GRID ==================== -->
+        <!-- EDIT: Each .photo is one image. Put files in assets/gallery/.
+             data-category: travel | research | life  (used by the filter)
+             data-caption:  description shown in the lightbox -->
+        <div class="masonry">
+
+            <figure class="photo" data-category="travel"
+                    data-full="assets/gallery/photo1.jpg"
+                    data-caption="Caption one — where, when, what.">
+                <img src="assets/gallery/photo1.jpg" alt="Photo 1"
+                     onerror="this.parentElement.classList.add('photo-empty')" />
+                <figcaption>
+                    <h3>Photo One</h3>
+                    <p>Short caption describing the moment.</p>
+                </figcaption>
+            </figure>
+
+            <figure class="photo" data-category="research"
+                    data-full="assets/gallery/photo2.jpg"
+                    data-caption="Caption two.">
+                <img src="assets/gallery/photo2.jpg" alt="Photo 2"
+                     onerror="this.parentElement.classList.add('photo-empty')" />
+                <figcaption>
+                    <h3>Photo Two</h3>
+                    <p>Another caption.</p>
+                </figcaption>
+            </figure>
+
+            <figure class="photo" data-category="life"
+                    data-full="assets/gallery/photo3.jpg"
+                    data-caption="Caption three.">
+                <img src="assets/gallery/photo3.jpg" alt="Photo 3"
+                     onerror="this.parentElement.classList.add('photo-empty')" />
+                <figcaption>
+                    <h3>Photo Three</h3>
+                    <p>One more.</p>
+                </figcaption>
+            </figure>
+
+            <figure class="photo" data-category="travel"
+                    data-full="assets/gallery/photo4.jpg"
+                    data-caption="Caption four.">
+                <img src="assets/gallery/photo4.jpg" alt="Photo 4"
+                     onerror="this.parentElement.classList.add('photo-empty')" />
+                <figcaption>
+                    <h3>Photo Four</h3>
+                    <p>Duplicate a .photo block to add more.</p>
+                </figcaption>
+            </figure>
+
+            <figure class="photo" data-category="research"
+                    data-full="assets/gallery/photo5.jpg"
+                    data-caption="Caption five.">
+                <img src="assets/gallery/photo5.jpg" alt="Photo 5"
+                     onerror="this.parentElement.classList.add('photo-empty')" />
+                <figcaption>
+                    <h3>Photo Five</h3>
+                    <p>A research moment.</p>
+                </figcaption>
+            </figure>
+
+            <figure class="photo" data-category="life"
+                    data-full="assets/gallery/photo6.jpg"
+                    data-caption="Caption six.">
+                <img src="assets/gallery/photo6.jpg" alt="Photo 6"
+                     onerror="this.parentElement.classList.add('photo-empty')" />
+                <figcaption>
+                    <h3>Photo Six</h3>
+                    <p>A casual moment.</p>
+                </figcaption>
+            </figure>
+
+        </div>
+    </main>
+
+    <!-- ==================== LIGHTBOX (built-in, no library) ==================== -->
+    <div class="lightbox" id="lightbox" hidden>
+        <button class="lightbox-close" aria-label="Close"><i class="fas fa-xmark"></i></button>
+        <button class="lightbox-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+        <button class="lightbox-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+        <figure class="lightbox-figure">
+            <img class="lightbox-img" alt="" />
+            <figcaption class="lightbox-caption"></figcaption>
+        </figure>
+    </div>
+
+    <script>
+        /* ============================================================
+           GALLERY: filter + lightbox
+           ============================================================ */
+        (function () {
+            'use strict';
+
+            const photos = Array.from(document.querySelectorAll('.photo'));
+            const filters = document.querySelectorAll('.gallery-filter');
+            const lb = document.getElementById('lightbox');
+            const lbImg = lb.querySelector('.lightbox-img');
+            const lbCap = lb.querySelector('.lightbox-caption');
+
+            let visiblePhotos = photos.slice();
+            let currentIndex = 0;
+
+            /* ---------- Filtering ---------- */
+            filters.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    filters.forEach((b) => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const f = btn.dataset.filter;
+                    photos.forEach((p) => {
+                        const show = f === 'all' || p.dataset.category === f;
+                        p.classList.toggle('hidden', !show);
+                    });
+                    visiblePhotos = photos.filter((p) => !p.classList.contains('hidden'));
+                });
+            });
+
+            /* ---------- Lightbox open / nav ---------- */
+            function open(index) {
+                if (visiblePhotos.length === 0) return;
+                currentIndex = (index + visiblePhotos.length) % visiblePhotos.length;
+                const p = visiblePhotos[currentIndex];
+                lbImg.src = p.dataset.full || p.querySelector('img').src;
+                lbImg.alt = p.querySelector('h3') ? p.querySelector('h3').textContent : '';
+                lbCap.textContent = p.dataset.caption || '';
+                lb.hidden = false;
+                document.body.style.overflow = 'hidden';
+            }
+
+            function close() {
+                lb.hidden = true;
+                document.body.style.overflow = '';
+            }
+
+            photos.forEach((p) => {
+                p.addEventListener('click', () => {
+                    if (p.classList.contains('photo-empty')) return;     // skip missing images
+                    open(visiblePhotos.indexOf(p));
+                });
+            });
+
+            lb.querySelector('.lightbox-close').addEventListener('click', close);
+            lb.querySelector('.lightbox-prev').addEventListener('click', () => open(currentIndex - 1));
+            lb.querySelector('.lightbox-next').addEventListener('click', () => open(currentIndex + 1));
+
+            // Click outside the figure closes the lightbox
+            lb.addEventListener('click', (e) => {
+                if (e.target === lb) close();
+            });
+
+            // Keyboard nav
+            document.addEventListener('keydown', (e) => {
+                if (lb.hidden) return;
+                if (e.key === 'Escape') close();
+                else if (e.key === 'ArrowRight') open(currentIndex + 1);
+                else if (e.key === 'ArrowLeft') open(currentIndex - 1);
+            });
+        })();
+    </script>
+</body>
+</html>

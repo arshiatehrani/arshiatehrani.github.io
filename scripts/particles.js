@@ -1,17 +1,23 @@
 /* ============================================================
-   INTERACTIVE PARTICLE NETWORK — Antigravity-style
-   Two layers for depth: a slow distant layer + a faster near layer.
-   - Particles drift, connect with thin lines when close
-   - Near layer reacts to mouse (gentle repulsion + connecting lines)
-   - DPR-aware, auto-resizes, pauses when tab hidden
+   INTERACTIVE PARTICLE NETWORK — blended edition
+   ----------------------------------------------------------
+   Combines the calm, network-feel of the first 2-layer version
+   with the twinkle and glow-halo nodes from the denser one.
 
-   If you ever want to swap to a library, tsparticles is a great pick:
-   https://github.com/tsparticles/tsparticles
+   Two layers:
+     - NEAR (foreground): denser, brighter, mouse-reactive,
+       includes a handful of glowing "hub" nodes with radial halos.
+     - BACK (distant):    slower, smaller, subtler connections,
+       gentle twinkle, no mouse interaction.
+
+   Tune `density` / `maxParticles` per layer below to taste.
    ============================================================ */
 (function () {
     'use strict';
 
-    /* ---------- Layer constructor ---------- */
+    /* ============================================================
+       LAYER ENGINE
+       ============================================================ */
     function makeLayer(canvasId, config) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
@@ -19,7 +25,7 @@
 
         let particles = [];
         let width = 0, height = 0;
-        let dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
         function resize() {
             width = window.innerWidth;
@@ -45,21 +51,27 @@
         function make() {
             const angle = Math.random() * Math.PI * 2;
             const speed = config.minSpeed + Math.random() * (config.maxSpeed - config.minSpeed);
+            const isAccent = Math.random() < config.accentRatio;
             return {
                 x: Math.random() * width,
                 y: Math.random() * height,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
-                r: config.minRadius + Math.random() * (config.maxRadius - config.minRadius),
-                accent: Math.random() < config.accentRatio,
-                pulse: Math.random() * Math.PI * 2,
+                // accent ("node") particles are noticeably bigger so they read as hubs
+                r: isAccent
+                    ? config.minRadius + Math.random() * (config.maxRadius - config.minRadius) * 1.8
+                    : config.minRadius + Math.random() * (config.maxRadius - config.minRadius),
+                accent: isAccent,
+                twinkle: Math.random() * Math.PI * 2,
+                twinkleSpeed: 0.015 + Math.random() * 0.030,
+                baseOpacity: 0.55 + Math.random() * 0.4,
             };
         }
 
         function update(p, mouse) {
             p.x += p.vx;
             p.y += p.vy;
-            p.pulse += 0.02;
+            p.twinkle += p.twinkleSpeed;
 
             if (config.reactsToMouse && mouse.active) {
                 const dx = p.x - mouse.x;
@@ -72,6 +84,7 @@
                 }
             }
 
+            // wrap edges so the field is endless
             if (p.x < -20) p.x = width + 20;
             if (p.x > width + 20) p.x = -20;
             if (p.y < -20) p.y = height + 20;
@@ -79,24 +92,26 @@
         }
 
         function drawConnections(mouse) {
+            if (!config.drawConnections) return;
             const maxDist = config.connectionDistance;
             const maxDistSq = maxDist * maxDist;
 
             for (let i = 0; i < particles.length; i++) {
                 const a = particles[i];
 
+                // cursor-to-particle line (only when close)
                 if (config.reactsToMouse && mouse.active) {
                     const mdx = a.x - mouse.x;
                     const mdy = a.y - mouse.y;
                     const mdistSq = mdx * mdx + mdy * mdy;
-                    const mc = config.mouseInfluence * 1.4;
+                    const mc = config.mouseInfluence * 1.5;
                     if (mdistSq < mc * mc) {
                         const alpha = 1 - Math.sqrt(mdistSq) / mc;
                         ctx.beginPath();
                         ctx.moveTo(a.x, a.y);
                         ctx.lineTo(mouse.x, mouse.y);
-                        ctx.strokeStyle = config.mouseLineColor + (alpha * 0.45) + ')';
-                        ctx.lineWidth = 1;
+                        ctx.strokeStyle = config.mouseLineColor + (alpha * 0.55) + ')';
+                        ctx.lineWidth = 1.1;
                         ctx.stroke();
                     }
                 }
@@ -108,11 +123,13 @@
                     const distSq = dx * dx + dy * dy;
                     if (distSq < maxDistSq) {
                         const alpha = 1 - Math.sqrt(distSq) / maxDist;
+                        const useAccent = (a.accent || b.accent);
                         ctx.beginPath();
                         ctx.moveTo(a.x, a.y);
                         ctx.lineTo(b.x, b.y);
-                        ctx.strokeStyle = (a.accent || b.accent ? config.accentLineColor : config.lineColor) + (alpha * config.lineOpacity) + ')';
-                        ctx.lineWidth = config.lineWidth;
+                        ctx.strokeStyle = (useAccent ? config.accentLineColor : config.lineColor)
+                            + (alpha * config.lineOpacity) + ')';
+                        ctx.lineWidth = useAccent ? config.lineWidth * 1.3 : config.lineWidth;
                         ctx.stroke();
                     }
                 }
@@ -120,17 +137,28 @@
         }
 
         function drawParticle(p) {
-            const pulseSize = p.r + Math.sin(p.pulse) * 0.3;
+            // gentle opacity oscillation — bigger amplitude for the accent stars
+            const twinkleAmp = p.accent ? 0.30 : 0.18;
+            const opacity = Math.max(0, Math.min(1,
+                p.baseOpacity + Math.sin(p.twinkle) * twinkleAmp
+            ));
+
+            // main dot
             ctx.beginPath();
-            ctx.arc(p.x, p.y, pulseSize, 0, Math.PI * 2);
-            ctx.fillStyle = (p.accent ? config.accentColor : config.particleColor) + config.particleOpacity + ')';
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = (p.accent ? config.accentColor : config.particleColor) + opacity + ')';
             ctx.fill();
 
-            // soft outer glow on accent particles
-            if (p.accent) {
+            // bright radial halo on accent ("node") particles
+            if (p.accent && config.drawGlow) {
+                const glowR = p.r * 4.5;
+                const grad = ctx.createRadialGradient(p.x, p.y, p.r * 0.5, p.x, p.y, glowR);
+                grad.addColorStop(0, config.glowColor + (opacity * 0.45) + ')');
+                grad.addColorStop(0.5, config.glowColor + (opacity * 0.10) + ')');
+                grad.addColorStop(1, config.glowColor + '0)');
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, pulseSize * 2.5, 0, Math.PI * 2);
-                ctx.fillStyle = config.accentColor + '0.08)';
+                ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
                 ctx.fill();
             }
         }
@@ -145,62 +173,70 @@
         return { resize, render, get count() { return particles.length; } };
     }
 
-    /* ---------- LAYER CONFIG — tweak here to taste ---------- */
-    // Near (foreground): denser, reacts to mouse
+    /* ============================================================
+       LAYER CONFIGS
+       ============================================================ */
+
+    // NEAR — foreground, denser, with a handful of bright glowing hubs
     const NEAR_CONFIG = {
-        density: 0.00022,               // ~2.4x denser than before
-        maxParticles: 260,
-        minSpeed: 0.12,
-        maxSpeed: 0.45,
-        minRadius: 1.0,
-        maxRadius: 2.4,
+        density: 0.00055,                          // bumped from 0.00035
+        maxParticles: 620,                         // bumped from 420
+        minSpeed: 0.10,
+        maxSpeed: 0.40,
+        minRadius: 1.4,                            // slightly larger dots
+        maxRadius: 2.8,
         connectionDistance: 130,
-        accentRatio: 0.22,
-        particleColor: 'rgba(154, 177, 201, ',     // fog light
-        accentColor: 'rgba(176, 168, 196, ',       // fog lavender
-        lineColor: 'rgba(154, 177, 201, ',
-        accentLineColor: 'rgba(176, 168, 196, ',
-        mouseLineColor: 'rgba(176, 168, 196, ',
-        particleOpacity: '0.85)',
-        lineOpacity: 0.4,
-        lineWidth: 0.7,
+        accentRatio: 0.18,                         // ~18% bright accent "nodes"
+        drawConnections: true,
+        drawGlow: true,
+        particleColor:   'rgba(154, 177, 201, ',   // foggy light
+        accentColor:     'rgba(210, 220, 240, ',   // bright white-blue stars
+        glowColor:       'rgba(130, 175, 225, ',   // blue glow
+        lineColor:       'rgba(154, 177, 201, ',
+        accentLineColor: 'rgba(200, 215, 240, ',
+        mouseLineColor:  'rgba(220, 230, 255, ',
+        lineOpacity: 0.45,
+        lineWidth: 0.8,
         reactsToMouse: true,
-        mouseInfluence: 170,
+        mouseInfluence: 190,
         mouseForce: 1.6,
     };
 
-    // Back (distant): slower, sparser, deeper, no mouse interaction
+    // BACK — distant, slower, smaller, twinkle but no glow halos, sparser network
     const BACK_CONFIG = {
-        density: 0.00010,
-        maxParticles: 140,
+        density: 0.00030,                          // bumped from 0.00018
+        maxParticles: 360,                         // bumped from 240
         minSpeed: 0.04,
         maxSpeed: 0.15,
-        minRadius: 0.6,
-        maxRadius: 1.4,
+        minRadius: 0.7,                            // slightly larger
+        maxRadius: 1.6,
         connectionDistance: 95,
-        accentRatio: 0.15,
-        particleColor: 'rgba(74, 127, 179, ',      // fog blue
-        accentColor: 'rgba(0, 33, 71, ',           // oxford blue
-        lineColor: 'rgba(74, 127, 179, ',
-        accentLineColor: 'rgba(0, 33, 71, ',
-        mouseLineColor: 'rgba(74, 127, 179, ',
-        particleOpacity: '0.55)',
-        lineOpacity: 0.25,
-        lineWidth: 0.5,
+        accentRatio: 0.10,
+        drawConnections: true,
+        drawGlow: false,
+        particleColor:   'rgba(74, 127, 179, ',    // foggy blue
+        accentColor:     'rgba(176, 168, 196, ',   // lavender mist
+        glowColor:       'rgba(74, 127, 179, ',
+        lineColor:       'rgba(74, 127, 179, ',
+        accentLineColor: 'rgba(176, 168, 196, ',
+        mouseLineColor:  'rgba(74, 127, 179, ',
+        lineOpacity: 0.32,
+        lineWidth: 0.55,
         reactsToMouse: false,
     };
 
-    /* ---------- Build layers ---------- */
+    /* ============================================================
+       Build & run
+       ============================================================ */
     const layers = [
         makeLayer('particle-canvas-back', BACK_CONFIG),
-        makeLayer('particle-canvas', NEAR_CONFIG),
+        makeLayer('particle-canvas',      NEAR_CONFIG),
     ].filter(Boolean);
 
     if (layers.length === 0) return;
 
-    /* ---------- Mouse tracking ---------- */
+    /* Mouse tracking */
     const mouse = { x: -1000, y: -1000, active: false };
-
     window.addEventListener('mousemove', (e) => {
         mouse.x = e.clientX;
         mouse.y = e.clientY;
@@ -216,7 +252,7 @@
     }, { passive: true });
     window.addEventListener('touchend', () => { mouse.active = false; });
 
-    /* ---------- Animation loop ---------- */
+    /* Animation loop */
     let animationId = null;
     function animate() {
         for (const layer of layers) layer.render(mouse);
@@ -236,10 +272,10 @@
         }
     });
 
-    // Reduced motion: nearly freeze particles
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        NEAR_CONFIG.maxSpeed = 0.05; NEAR_CONFIG.minSpeed = 0;
-        BACK_CONFIG.maxSpeed = 0.02; BACK_CONFIG.minSpeed = 0;
+        for (const cfg of [NEAR_CONFIG, BACK_CONFIG]) {
+            cfg.minSpeed = 0; cfg.maxSpeed = 0.02;
+        }
     }
 
     for (const layer of layers) layer.resize();
