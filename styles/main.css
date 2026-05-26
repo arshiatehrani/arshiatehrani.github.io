@@ -60,6 +60,7 @@
 
     --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --transition-hover: 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+    --transition-timeline: 0.12s cubic-bezier(0.22, 0.61, 0.36, 1);
     --transition-slow: 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --hover-lift: -8px;
     --hover-slide: 8px;
@@ -723,8 +724,8 @@ body::before {
     background: var(--bg-primary);
     border: 2px solid var(--fog-blue);
     z-index: 2;
-    transition: transform var(--transition-hover), background var(--transition-hover),
-                border-color var(--transition-hover), box-shadow var(--transition-hover);
+    transition: transform var(--transition-timeline), background var(--transition-timeline),
+                border-color var(--transition-timeline), box-shadow var(--transition-timeline);
 }
 
 .timeline-item:hover .timeline-marker,
@@ -746,8 +747,8 @@ body::before {
     cursor: pointer;
     color: inherit;
     font-family: inherit;
-    transition: transform var(--transition-hover), border-color var(--transition-hover),
-                background var(--transition-hover), box-shadow var(--transition-hover);
+    transition: transform var(--transition-timeline), border-color var(--transition-timeline),
+                background var(--transition-timeline), box-shadow var(--transition-timeline);
     position: relative;
 }
 
@@ -842,16 +843,18 @@ body::before {
     margin-top: 1rem;
 }
 
-/* Per-tool brand colors for hover border (matches devicon logo colors) */
-.tool-card:has(.devicon-python-plain)       { --brand-color: #3776AB; }
-.tool-card:has(.devicon-cplusplus-plain)    { --brand-color: #00599C; }
-.tool-card:has(.devicon-matlab-plain)       { --brand-color: #E16737; }
-.tool-card:has(.devicon-pytorch-original)   { --brand-color: #EE4C2C; }
-.tool-card:has(.devicon-tensorflow-original) { --brand-color: #FF6F00; }
-.tool-card:has(.devicon-scikitlearn-plain)  { --brand-color: #F7931E; }
-.tool-card:has(.devicon-linux-plain)        { --brand-color: #FCC624; }
-.tool-card:has(.devicon-docker-plain)       { --brand-color: #2496ED; }
-.tool-card:has(.devicon-git-plain)          { --brand-color: #F05032; }
+/* Tool brand colors — matched to devicon logo colors on the card */
+.tool-brand-python      { --brand-color: #FFD43B; }   /* Python yellow */
+.tool-brand-cplusplus   { --brand-color: #00599C; }   /* C++ blue */
+.tool-brand-matlab      { --brand-color: #E16737; }   /* MATLAB orange */
+.tool-brand-pytorch     { --brand-color: #EE4C2C; }   /* PyTorch red-orange */
+.tool-brand-tensorflow  { --brand-color: #FF6F00; }   /* TensorFlow orange */
+.tool-brand-scikitlearn { --brand-color: #F9C74F; }   /* scikit-learn yellow */
+.tool-brand-linux       { --brand-color: #000000; }   /* Linux tux black */
+.tool-brand-docker      { --brand-color: #2496ED; }   /* Docker blue */
+.tool-brand-git         { --brand-color: #F05032; }   /* Git orange */
+
+[data-theme="dark"] .tool-brand-linux { --brand-color: #d8d8d8; } /* visible on dark bg */
 
 .tool-card {
     background: var(--bg-card);
@@ -1476,6 +1479,32 @@ body::before {
 .reveal-right.visible {
     opacity: 1;
     transform: translate(0, 0);
+}
+
+/* Card hover lift — same as Get In Touch; overrides .reveal.visible transform */
+.contact-card:hover,
+.tool-card.reveal.visible:hover,
+.project-card.reveal.visible:hover,
+.gallery-item.reveal.visible:hover,
+.publication-item.reveal.visible:hover {
+    transform: translateY(var(--hover-lift));
+}
+
+.contact-card:hover {
+    border-color: var(--brand-color, var(--fog-blue));
+    box-shadow: 0 15px 40px color-mix(in srgb, var(--brand-color, var(--fog-blue)) 28%, transparent);
+}
+
+.tool-card.reveal.visible:hover {
+    border-color: var(--brand-color, var(--fog-blue));
+    box-shadow: 0 15px 40px color-mix(in srgb, var(--brand-color, var(--fog-blue)) 28%, transparent);
+}
+
+.project-card.reveal.visible:hover,
+.gallery-item.reveal.visible:hover,
+.publication-item.reveal.visible:hover {
+    border-color: var(--fog-blue);
+    box-shadow: 0 15px 40px color-mix(in srgb, var(--fog-blue) 28%, transparent);
 }
 
 .tools-grid .tool-card,
