@@ -336,7 +336,7 @@
         lineOpacity: 0.32,
         lineWidth: 0.8,
         reactsToMouse: true,
-        mouseInfluence: 90,                             // small physical "ball" — local push only
+        mouseInfluence: 70,                             // tighter physical "ball" — push stays very local
         mouseForce: 0.45,                               // strong transfer inside the ball
     };
 
@@ -357,7 +357,7 @@
         lineOpacity: 0.22,
         lineWidth: 0.55,
         reactsToMouse: true,
-        mouseInfluence: 70,
+        mouseInfluence: 55,
         mouseForce: 0.30,                               // distant layer still moves but a touch less
     };
 
