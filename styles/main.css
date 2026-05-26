@@ -405,11 +405,13 @@ body::before {
 
 .hero-name {
     font-family: 'Playfair Display', 'Inter', serif;
-    font-size: clamp(3rem, 9vw, 7.5rem);
+    font-size: clamp(1.5rem, 8vw, 7.5rem); /* fallback until JS sizes to one line */
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.05;
     letter-spacing: -0.02em;
     margin-bottom: 1.5rem;
+    white-space: nowrap;
+    max-width: 100%;
     background: var(--hero-name-gradient);
     -webkit-background-clip: text;
     background-clip: text;
@@ -1564,7 +1566,6 @@ body::before {
     .theme-toggle { width: 34px; height: 34px; margin-left: 0.5rem; font-size: 0.85rem; }
     .nav-toggle { width: 34px; height: 34px; }
     .nav-toggle span { width: 22px; }
-    .hero-name { font-size: clamp(2.5rem, 12vw, 4rem); }
     .hero-tagline { font-size: clamp(1.2rem, 5vw, 1.6rem); }
     .hero-description { font-size: 1rem; }
     .container { padding: 0 1.25rem; }

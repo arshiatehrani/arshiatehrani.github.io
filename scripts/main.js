@@ -122,4 +122,51 @@
     // Backward-compat: also fill the older single-year span if it still exists
     const yearEl = document.getElementById('current-year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    /* ---------- 5. HERO NAME — one line, max size that fits ---------- */
+    const heroName = document.querySelector('.hero-name');
+
+    function fitHeroNameOneLine() {
+        if (!heroName) return;
+        const box = heroName.closest('.hero-content') || heroName.parentElement;
+        if (!box) return;
+
+        const maxWidth = box.clientWidth;
+        const minPx = 16;
+        const maxPx = Math.min(120, Math.max(48, window.innerWidth * 0.11));
+
+        heroName.style.whiteSpace = 'nowrap';
+        let lo = minPx;
+        let hi = maxPx;
+        let best = minPx;
+
+        while (lo <= hi) {
+            const mid = Math.floor((lo + hi) / 2);
+            heroName.style.fontSize = mid + 'px';
+            if (heroName.scrollWidth <= maxWidth) {
+                best = mid;
+                lo = mid + 1;
+            } else {
+                hi = mid - 1;
+            }
+        }
+        heroName.style.fontSize = best + 'px';
+    }
+
+    if (heroName) {
+        let fitTimer;
+        const scheduleFit = () => {
+            clearTimeout(fitTimer);
+            fitTimer = setTimeout(fitHeroNameOneLine, 50);
+        };
+
+        fitHeroNameOneLine();
+        window.addEventListener('resize', scheduleFit);
+        if (document.fonts?.ready) document.fonts.ready.then(fitHeroNameOneLine);
+
+        const heroBox = heroName.closest('.hero-content');
+        if (heroBox && typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(scheduleFit).observe(heroBox);
+        }
+    }
 })();
