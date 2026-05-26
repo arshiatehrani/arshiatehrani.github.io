@@ -132,7 +132,12 @@
                 const infl = config.mouseInfluence;
                 if (distSq < infl * infl && distSq > 0) {
                     const dist = Math.sqrt(distSq);
-                    const force = (1 - dist / infl) * config.mouseForce;
+                    const t = 1 - dist / infl;             // 0 at edge, 1 at cursor
+                    // easeOut: strong near cursor, smooth falloff. Antigravity-style "shockwave".
+                    const eased = config.forceFalloff === 'easeOut'
+                        ? (t * t * (3 - 2 * t))            // smoothstep
+                        : t;                                // linear (legacy)
+                    const force = eased * config.mouseForce;
                     p.x += (dx / dist) * force;
                     p.y += (dy / dist) * force;
                 }
@@ -165,28 +170,10 @@
                 grid[cy * cols + cx].push(i);
             }
 
-            // 3) line from cursor (cheap, separate)
-            if (config.reactsToMouse && mouse.active) {
-                const mc = config.mouseInfluence * 1.5;
-                const mcSq = mc * mc;
-                for (let i = 0; i < particles.length; i++) {
-                    const a = particles[i];
-                    const mdx = a.x - mouse.x;
-                    const mdy = a.y - mouse.y;
-                    const dSq = mdx * mdx + mdy * mdy;
-                    if (dSq < mcSq) {
-                        const alpha = 1 - Math.sqrt(dSq) / mc;
-                        ctx.beginPath();
-                        ctx.moveTo(a.x, a.y);
-                        ctx.lineTo(mouse.x, mouse.y);
-                        ctx.strokeStyle = config.colors.mouseLineColor + (alpha * 0.45) + ')';
-                        ctx.lineWidth = 1.0;
-                        ctx.stroke();
-                    }
-                }
-            }
+            // (Cursor-to-particle "spider-web" lines intentionally removed — the
+            // user prefers only the lattice connections between particles.)
 
-            // 4) particle-to-particle lines via grid neighbors only
+            // 3) particle-to-particle lines via grid neighbors only
             for (let cy = 0; cy < rows; cy++) {
                 for (let cx = 0; cx < cols; cx++) {
                     const cell = grid[cy * cols + cx];
@@ -274,47 +261,50 @@
        LAYER CONFIGS — edit density / sizes / parallax here
        ============================================================ */
 
-    // NEAR — foreground, denser, moves more with scroll
+    // NEAR — foreground, denser, fast drift, strong cursor influence
     const NEAR_CONFIG = {
         density: 0.00055,
         maxParticles: 620,
-        minSpeed: 0.18,                                 // bumped — clearer idle drift
-        maxSpeed: 0.62,
+        minSpeed: 0.30,                                 // visibly drifting
+        maxSpeed: 1.05,
         minRadius: 1.4,
         maxRadius: 2.8,
         connectionDistance: 130,
         accentRatio: 0.18,
         drawConnections: true,
+        drawMouseLines: false,                          // <- no spider-web from cursor
         drawGlow: true,
-        parallaxFactor: 0.45,
-        colors: NEAR_COLORS,                            // theme-aware (filled by refreshColors)
+        parallaxFactor: 0,                              // disabled — fixes the "horizontal line on scroll" artifact
+        colors: NEAR_COLORS,
         lineOpacity: 0.32,
         lineWidth: 0.8,
         reactsToMouse: true,
-        mouseInfluence: 340,                            // bigger radius — many more particles react
-        mouseForce: 1.9,                                // a touch stronger push for a livelier ripple
+        mouseInfluence: 460,                            // huge interaction radius
+        mouseForce: 5.5,                                // BOLD push — Antigravity feel
+        forceFalloff: 'easeOut',                        // smoother, more "explosive" near the center
     };
 
-    // BACK — distant, slower, dimmer, less parallax (looks farther)
-    // Now also reacts to the cursor (gently) so the whole field feels alive.
+    // BACK — distant, slower, also reactive (creates depth)
     const BACK_CONFIG = {
         density: 0.00030,
         maxParticles: 360,
-        minSpeed: 0.08,                                 // gentle bump — distant layer still slow
-        maxSpeed: 0.26,
+        minSpeed: 0.15,
+        maxSpeed: 0.45,
         minRadius: 0.7,
         maxRadius: 1.6,
         connectionDistance: 95,
         accentRatio: 0.10,
         drawConnections: true,
+        drawMouseLines: false,
         drawGlow: false,
-        parallaxFactor: 0.18,
-        colors: BACK_COLORS,                            // theme-aware
+        parallaxFactor: 0,                              // disabled
+        colors: BACK_COLORS,
         lineOpacity: 0.22,
         lineWidth: 0.55,
-        reactsToMouse: true,                            // distant layer drifts subtly too
-        mouseInfluence: 280,                            // slightly smaller than NEAR
-        mouseForce: 0.7,                                // weaker push — feels like depth
+        reactsToMouse: true,
+        mouseInfluence: 380,
+        mouseForce: 2.4,
+        forceFalloff: 'easeOut',
     };
 
     /* ============================================================

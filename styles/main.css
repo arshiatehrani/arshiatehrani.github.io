@@ -512,9 +512,9 @@ body::before {
     padding: var(--section-padding);
     position: relative;
     /* When the browser scrolls to a #section anchor, pretend the section
-       starts 80px above its real top edge so the heading lands just under
-       the navbar instead of well below it. Matches the Lenis offset. */
-    scroll-margin-top: -80px;
+       starts 40px above its real top edge so the heading lands just under
+       the navbar (with breathing room). Matches the Lenis offset. */
+    scroll-margin-top: -40px;
 }
 
 .container {
