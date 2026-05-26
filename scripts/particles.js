@@ -130,25 +130,46 @@
             p.twinkle += p.twinkleSpeed;
 
             // Cursor interaction — small "physical ball" pushing particles aside.
-            // Particles get nudged in the cursor's direction of motion, but ONLY
-            // when the cursor is moving and ONLY for those within a tight radius.
-            // The push is clamped so flicks don't launch particles off-screen.
+            // Particles get nudged in the cursor's direction of motion, but ONLY:
+            //   - when the cursor is moving (mouseVx/mouseVy not both zero),
+            //   - within a tight radius around the cursor, AND
+            //   - when they are AHEAD of the cursor's motion direction.
+            // The dot product between the cursor's velocity vector and the
+            // (cursor → particle) vector tells us whether the particle is in
+            // front (dot > 0) or behind (dot < 0). Only those in front are
+            // pushed, just like water in front of a moving hand.
             if (config.reactsToMouse && mouse.active && (mouseVx !== 0 || mouseVy !== 0)) {
                 const dx = p.x - mouse.x;
                 const dy = p.y - mouse.y;
                 const distSq = dx * dx + dy * dy;
                 const infl = config.mouseInfluence;
                 if (distSq < infl * infl) {
-                    const t = 1 - Math.sqrt(distSq) / infl;     // 0 at edge, 1 at cursor
+                    const dist = Math.sqrt(distSq);
+                    const t = 1 - dist / infl;              // 0 at edge, 1 at cursor
                     const eased = t * t * (3 - 2 * t);
-                    // Clamp cursor velocity so very fast flicks don't blast
-                    // particles across the page — keeps motion believable.
-                    const CAP = 25;
-                    const cvx = Math.max(-CAP, Math.min(CAP, mouseVx));
-                    const cvy = Math.max(-CAP, Math.min(CAP, mouseVy));
-                    const k = eased * config.mouseForce;
-                    p.vx += cvx * k;
-                    p.vy += cvy * k;
+
+                    // "Frontness" — 1 if particle is directly in cursor's path,
+                    // 0 if perpendicular, 0 if behind. Particles touching the
+                    // cursor exactly (dist≈0) always count as "in front".
+                    let frontness = 1;
+                    if (dist > 0.5) {
+                        const cursorMag = Math.sqrt(mouseVx * mouseVx + mouseVy * mouseVy);
+                        if (cursorMag > 0.01) {
+                            const cosTheta = (mouseVx * dx + mouseVy * dy) / (cursorMag * dist);
+                            frontness = Math.max(0, cosTheta);
+                        }
+                    }
+
+                    if (frontness > 0) {
+                        // Clamp cursor velocity so very fast flicks don't blast
+                        // particles across the page — keeps motion believable.
+                        const CAP = 25;
+                        const cvx = Math.max(-CAP, Math.min(CAP, mouseVx));
+                        const cvy = Math.max(-CAP, Math.min(CAP, mouseVy));
+                        const k = eased * config.mouseForce * frontness;
+                        p.vx += cvx * k;
+                        p.vy += cvy * k;
+                    }
                 }
             }
 
