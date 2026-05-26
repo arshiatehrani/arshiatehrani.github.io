@@ -216,7 +216,7 @@ body::before {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: 110;                       /* above the mobile nav-backdrop (z:104) */
     padding: 1.5rem 2rem;
     background: var(--bg-navbar-clear);
     backdrop-filter: blur(0px);
@@ -281,19 +281,38 @@ body::before {
 .nav-toggle {
     display: none;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
     gap: 5px;
+    width: 38px;
+    height: 38px;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 5px;
+    padding: 0;
+    position: relative;
+    z-index: 110;                       /* above the .nav-links drawer */
 }
 
 .nav-toggle span {
     display: block;
-    width: 25px;
+    width: 24px;
     height: 2px;
     background: var(--text-primary);
-    transition: var(--transition);
+    border-radius: 2px;
+    transition: transform var(--transition), opacity var(--transition);
+    transform-origin: center;
+}
+
+/* Hamburger -> X animation when the menu is open */
+.nav-toggle.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.nav-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+.nav-toggle.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
 }
 
 /* ============================================================
@@ -316,6 +335,8 @@ body::before {
     transition: transform var(--transition), background var(--transition),
                 border-color var(--transition), color var(--transition);
     flex-shrink: 0;
+    position: relative;
+    z-index: 110;                       /* stays above mobile drawer */
 }
 
 .theme-toggle:hover {
@@ -1421,11 +1442,16 @@ body::before {
 @media (max-width: 768px) {
     :root { --section-padding: 5rem 0; }
 
+    .navbar { padding: 1rem 1.25rem; }
+    .navbar.scrolled { padding: 0.75rem 1.25rem; }
+    .nav-logo { font-size: 1.5rem; }
+
     .nav-links {
         position: fixed;
         top: 0;
         right: -100%;
-        width: 75%;
+        width: 78%;
+        max-width: 360px;
         height: 100vh;
         background: var(--bg-overlay-strong);
         backdrop-filter: blur(20px);
@@ -1435,10 +1461,29 @@ body::before {
         gap: 1.8rem;
         transition: right var(--transition);
         border-left: 1px solid var(--border-color);
+        z-index: 105;                    /* below the close button but above page */
+        padding: 2rem;
     }
 
     .nav-links.active { right: 0; }
     .nav-toggle { display: flex; }
+
+    /* Backdrop behind the drawer — tap to dismiss */
+    .nav-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition);
+        z-index: 104;
+    }
+    .nav-backdrop.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .theme-toggle { margin-left: 0.75rem; }
 
     .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
     .about-image { max-width: 350px; margin: 0 auto; }
@@ -1464,6 +1509,19 @@ body::before {
 
     #world-map { height: 400px; }
     .world-legend { font-size: 0.7rem; gap: 0.6rem; padding: 0.55rem 0.75rem; }
+}
+
+/* Extra tightening for very narrow phones */
+@media (max-width: 420px) {
+    .navbar { padding: 0.85rem 1rem; }
+    .nav-logo { font-size: 1.35rem; }
+    .theme-toggle { width: 34px; height: 34px; margin-left: 0.5rem; font-size: 0.85rem; }
+    .nav-toggle { width: 34px; height: 34px; }
+    .nav-toggle span { width: 22px; }
+    .hero-name { font-size: clamp(2.5rem, 12vw, 4rem); }
+    .hero-tagline { font-size: clamp(1.2rem, 5vw, 1.6rem); }
+    .hero-description { font-size: 1rem; }
+    .container { padding: 0 1.25rem; }
 }
 
 /* Respect reduced motion */

@@ -49,14 +49,48 @@
         setTimeout(type, 800);
     }
 
-    /* ---------- 2. MOBILE NAV ---------- */
+    /* ---------- 2. MOBILE NAV ----------
+       Three things must stay in sync:
+         - .nav-links  → slides in from the right
+         - .nav-toggle → hamburger ↔ X (also gets z-index above the drawer)
+         - .nav-backdrop → translucent overlay; tap it to dismiss
+       The drawer can be closed by:
+         (a) pressing the (now X) toggle again,
+         (b) tapping any nav link,
+         (c) tapping the backdrop,
+         (d) pressing Escape.
+    */
     const navToggle = document.querySelector('.nav-toggle');
     const navLinks = document.querySelector('.nav-links');
+    const navBackdrop = document.querySelector('.nav-backdrop');
+
+    function openNav() {
+        navLinks?.classList.add('active');
+        navToggle?.classList.add('active');
+        navBackdrop?.classList.add('active');
+        navToggle?.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';        // prevent scroll behind drawer
+    }
+    function closeNav() {
+        navLinks?.classList.remove('active');
+        navToggle?.classList.remove('active');
+        navBackdrop?.classList.remove('active');
+        navToggle?.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+    function toggleNav() {
+        if (navLinks?.classList.contains('active')) closeNav();
+        else openNav();
+    }
 
     if (navToggle && navLinks) {
-        navToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
+        navToggle.addEventListener('click', toggleNav);
         navLinks.querySelectorAll('a').forEach((link) => {
-            link.addEventListener('click', () => navLinks.classList.remove('active'));
+            link.addEventListener('click', closeNav);
+        });
+        navBackdrop?.addEventListener('click', closeNav);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navLinks.classList.contains('active')) closeNav();
         });
     }
 

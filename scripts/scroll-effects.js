@@ -74,6 +74,7 @@
     const progressBar = document.querySelector('.scroll-progress');
     const navbar = document.querySelector('.navbar');
     const heroContent = document.querySelector('.hero-content');
+    const heroButtons = document.querySelector('.hero-buttons');
     const heroSection = document.querySelector('.hero');
 
     function onScroll() {
@@ -97,6 +98,20 @@
             const opacity = Math.max(0, 1 - t * 1.2);
             heroContent.style.transform = `translateY(${translateY}px) scale(${scale})`;
             heroContent.style.opacity = String(opacity);
+        }
+
+        // HERO BUTTONS — fade faster than the rest of the hero so the solid
+        // gradient + shadow on the primary button doesn't read as a stranded
+        // dark rectangle while the surrounding text is fading.
+        if (heroButtons && scrollTop < vh * 0.6) {
+            const tb = Math.min(scrollTop / (vh * 0.32), 1);
+            // Faster opacity decay + small extra translateY so they slide
+            // out from under any visible artifact zone smoothly.
+            const op = Math.max(0, 1 - tb * 1.6);
+            const extraY = scrollTop * 0.18;
+            heroButtons.style.opacity = String(op);
+            heroButtons.style.transform = `translateY(${extraY}px)`;
+            heroButtons.style.pointerEvents = op < 0.2 ? 'none' : 'auto';
         }
 
         // SECTION HEADERS — subtle horizontal drift as they pass through viewport
