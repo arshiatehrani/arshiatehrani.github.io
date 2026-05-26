@@ -122,36 +122,37 @@
             };
         }
 
-        function update(p, mouse, scrollDelta) {
+        function update(p, mouse, scrollDelta, mouseVx, mouseVy) {
             p.x += p.vx;
             p.y += p.vy;
             // parallax: shift particles opposite to scroll, scaled by factor
             p.y -= scrollDelta * (config.parallaxFactor || 0);
             p.twinkle += p.twinkleSpeed;
 
-            // Cursor interaction — TANGENTIAL nudge to velocity (swirl around cursor).
-            // This makes nearby particles curve past the cursor instead of being
-            // pushed away. No "empty bubble", no fleeing, just visible motion.
-            if (config.reactsToMouse && mouse.active) {
+            // Cursor interaction — DIRECTIONAL physics push.
+            // The cursor's per-frame velocity is multiplied by an eased weight
+            // based on distance to the cursor. Particles inside the radius get
+            // nudged in the EXACT direction the cursor is moving.
+            // When the cursor is still, mouseVx == mouseVy == 0 and nothing
+            // happens — particles drift freely through the circle.
+            if (config.reactsToMouse && mouse.active && (mouseVx !== 0 || mouseVy !== 0)) {
                 const dx = p.x - mouse.x;
                 const dy = p.y - mouse.y;
                 const distSq = dx * dx + dy * dy;
                 const infl = config.mouseInfluence;
-                if (distSq < infl * infl && distSq > 0) {
-                    const dist = Math.sqrt(distSq);
-                    const t = 1 - dist / infl;             // 0 at edge, 1 at cursor
-                    const eased = t * t * (3 - 2 * t);     // smoothstep
-                    const kick = eased * config.mouseForce * 0.10;
-                    // Perpendicular to (dx, dy) → tangential = swirl direction
-                    p.vx += (-dy / dist) * kick;
-                    p.vy += ( dx / dist) * kick;
+                if (distSq < infl * infl) {
+                    const t = 1 - Math.sqrt(distSq) / infl;     // 0 at edge, 1 at cursor
+                    const eased = t * t * (3 - 2 * t);           // smoothstep
+                    const k = eased * config.mouseForce;
+                    p.vx += mouseVx * k;
+                    p.vy += mouseVy * k;
                 }
             }
 
             // Damp velocity back toward natural drift each frame.
-            // Prevents runaway speeds and means particles ALWAYS return to their
-            // baseline trajectory once the cursor moves away.
-            const damp = 0.04;
+            // Particles always return to their baseline trajectory once the
+            // cursor moves on. Prevents runaway speed.
+            const damp = 0.05;
             p.vx += (p.baseVx - p.vx) * damp;
             p.vy += (p.baseVy - p.vy) * damp;
 
@@ -272,9 +273,9 @@
             }
         }
 
-        function render(mouse, scrollDelta) {
+        function render(mouse, scrollDelta, mouseVx, mouseVy) {
             ctx.clearRect(0, 0, width, height);
-            for (const p of particles) update(p, mouse, scrollDelta);
+            for (const p of particles) update(p, mouse, scrollDelta, mouseVx, mouseVy);
             drawConnections(mouse);
             for (const p of particles) drawParticle(p);
         }
@@ -304,7 +305,7 @@
         lineWidth: 0.8,
         reactsToMouse: true,
         mouseInfluence: 460,                            // big "felt" radius
-        mouseForce: 6.0,                                // strong swirl impulse (tangential, not radial)
+        mouseForce: 0.30,                               // fraction of cursor velocity transferred at center
     };
 
     // BACK — distant, slower, gentler swirl
@@ -325,7 +326,7 @@
         lineWidth: 0.55,
         reactsToMouse: true,
         mouseInfluence: 380,
-        mouseForce: 2.8,
+        mouseForce: 0.18,                               // distant layer transfers less of cursor velocity
     };
 
     /* ============================================================
@@ -364,12 +365,20 @@
         lastScrollY = cur;
     }, { passive: true });
 
-    /* Animation loop */
+    /* Animation loop — also tracks cursor velocity per frame. When the cursor
+       is still, mouseVx/mouseVy decay to 0 within a frame and particles drift
+       freely through the influence circle. */
     let animationId = null;
+    let prevMouseX = mouse.x;
+    let prevMouseY = mouse.y;
     function animate() {
         const delta = pendingScrollDelta;
         pendingScrollDelta = 0;
-        for (const layer of layers) layer.render(mouse, delta);
+        const mvx = mouse.x - prevMouseX;
+        const mvy = mouse.y - prevMouseY;
+        prevMouseX = mouse.x;
+        prevMouseY = mouse.y;
+        for (const layer of layers) layer.render(mouse, delta, mvx, mvy);
         animationId = requestAnimationFrame(animate);
     }
 
