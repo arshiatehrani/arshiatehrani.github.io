@@ -1463,7 +1463,10 @@ body::before {
 }
 
 @media (max-width: 768px) {
-    :root { --section-padding: 5rem 0; }
+    :root {
+        --section-padding: 5rem 0;
+        --mobile-nav-offset: 5.25rem;   /* fixed navbar height — drawer starts below it */
+    }
 
     .navbar { padding: 1rem 1.25rem; }
     .navbar.scrolled { padding: 0.75rem 1.25rem; }
@@ -1471,33 +1474,35 @@ body::before {
 
     .nav-links {
         position: fixed;
-        top: 50%;
+        top: calc(var(--mobile-nav-offset) + 0.5rem); /* below navbar, not behind it */
         right: 0.85rem;
-        bottom: auto;                    /* don't pin bottom — lets height follow content */
+        bottom: auto;
         height: auto;
-        max-height: calc(100dvh - 1.7rem); /* never taller than the viewport */
-        overflow-y: auto;                /* scroll inside the card on very small screens */
+        max-height: calc(100dvh - var(--mobile-nav-offset) - 1.35rem);
+        overflow-y: auto;
+        overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
-        transform: translate(calc(100% + 1.5rem), -50%); /* off-screen + vertically centred */
+        scroll-padding-top: 0.5rem;
+        transform: translateX(calc(100% + 1.5rem));
         width: 60%;
         max-width: 240px;
         min-width: 195px;
         background: var(--bg-overlay-strong);
         backdrop-filter: blur(20px);
         flex-direction: column;
-        justify-content: flex-start;     /* stack from top so every link stays inside the card */
+        justify-content: flex-start;
         align-items: center;
-        gap: 1.55rem;
+        gap: 1.35rem;
         transition: transform 0.38s cubic-bezier(0.22, 0.61, 0.36, 1);
         border: 1px solid var(--border-color);
         border-radius: 18px;
         z-index: 105;
-        padding: 2rem 1.2rem;
+        padding: 1.5rem 1.2rem 1.75rem;
         box-shadow: -10px 18px 50px rgba(0, 0, 0, 0.45);
         box-sizing: border-box;
     }
 
-    .nav-links.active { transform: translate(0, -50%); }
+    .nav-links.active { transform: translateX(0); }
 
     .nav-links li {
         width: 100%;

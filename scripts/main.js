@@ -70,6 +70,7 @@
         navBackdrop?.classList.add('active');
         navToggle?.setAttribute('aria-expanded', 'true');
         document.body.style.overflow = 'hidden';        // prevent scroll behind drawer
+        if (navLinks) navLinks.scrollTop = 0;           // always show About first
     }
     function closeNav() {
         navLinks?.classList.remove('active');
