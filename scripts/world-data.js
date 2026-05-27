@@ -17,13 +17,16 @@
 
 // Cities you've LIVED IN
 window.STAYS = `city,latitude,longitude
-Tehran,35.6892,51.3890
-Kingston,44.2334,-76.4940
-Kish Island,26.5570,53.9800
 Kuala Lumpur,3.1390,101.6869`;
 
 // Cities you explored well (spent multiple days)
-window.WELL_EXPLORED = `city,latitude,longitude`;
+window.WELL_EXPLORED = `city,latitude,longitude
+Tehran,35.6892,51.3890
+Kingston,44.2334,-76.4940
+Kish Island,26.5570,53.9800
+Toronto,43.6532,-79.3832
+Calgary,51.0447,-114.0719
+Montreal,45.5019,-73.5674`;
 
 // Cities you visited / traveled to
 window.TRAVELS = `city,latitude,longitude
@@ -65,9 +68,6 @@ Doha,25.2854,51.5310
 Abu Dhabi,24.4539,54.3773
 Dubai,25.2048,55.2708
 Muscat,23.5880,58.3829
-Toronto,43.6532,-79.3832
 Ottawa,45.4215,-75.6972
-Montreal,45.5019,-73.5674
-Calgary,51.0447,-114.0719
 Banff,51.1784,-115.5708
 Waterloo,43.4643,-80.5204`;
