@@ -156,32 +156,36 @@
         );
     }
 
-    function nudgeAnchorIfNeeded(target, gap) {
-        const top = target.getBoundingClientRect().top;
-        if (top >= gap - 2) return;
-        const fix = top - gap;
-        if (window.__lenis) {
-            window.__lenis.scrollTo(window.__lenis.scroll + fix);
-        } else {
-            window.scrollTo({ top: Math.max(0, window.scrollY + fix), behavior: 'auto' });
+    /* Reveal headers sit 18px lower until .visible — prime first so scroll math matches final layout */
+    function primeAnchorTarget(target) {
+        if (
+            target.classList.contains('reveal')
+            || target.classList.contains('reveal-left')
+            || target.classList.contains('reveal-right')
+        ) {
+            target.classList.add('visible');
+            void target.offsetHeight;
         }
     }
 
     function scrollToAnchor(target) {
+        primeAnchorTarget(target);
+
         const gap = anchorScrollOffset();
         const lenis = window.__lenis;
 
         if (lenis) {
-            /* Lenis adds offset to scroll — must be negative to clear the fixed nav */
-            lenis.scrollTo(target, {
-                offset: -gap,
-                onComplete: () => nudgeAnchorIfNeeded(target, gap),
-            });
-            return;
+            lenis.scrollTo(lenis.actualScroll, { immediate: true });
         }
 
-        const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - gap);
-        window.scrollTo({ top: y, behavior: 'smooth' });
+        const scroll = lenis ? lenis.scroll : window.scrollY;
+        const y = Math.max(0, Math.round(target.getBoundingClientRect().top + scroll - gap));
+
+        if (lenis) {
+            lenis.scrollTo(y);
+        } else {
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
     }
 
     document.querySelectorAll('a[href^="#"]').forEach((link) => {
@@ -191,10 +195,7 @@
             const target = resolveAnchorTarget(href);
             if (!target) return;
             e.preventDefault();
-            /* Two frames: wait for Lenis/DOM to settle before measuring (fixes first-click overshoot) */
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => scrollToAnchor(target));
-            });
+            scrollToAnchor(target);
         });
     });
 
