@@ -17,10 +17,13 @@
         mobileBreakpointPx: 768,   /* match main.css @media (max-width: 768px) */
     };
 
+    function isMobileView() {
+        return window.innerWidth <= HERO_EXIT.mobileBreakpointPx;
+    }
+
     function heroScaleEnd() {
-        return window.innerWidth <= HERO_EXIT.mobileBreakpointPx
-            ? HERO_EXIT.scaleMobile
-            : HERO_EXIT.scaleDesktop;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 1;
+        return isMobileView() ? HERO_EXIT.scaleMobile : HERO_EXIT.scaleDesktop;
     }
 
     /* ---------- 1. STAGGERED CHILD REVEALS ---------- */
@@ -33,43 +36,46 @@
         });
     });
 
-    /* ---------- 2. LENIS SMOOTH SCROLL ---------- */
+    /* ---------- 2. LENIS SMOOTH SCROLL (desktop only — native scroll on mobile) ---------- */
     let lenis = null;
-    if (typeof Lenis !== 'undefined') {
+    const useLenis = typeof Lenis !== 'undefined'
+        && !isMobileView()
+        && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (useLenis) {
         lenis = new Lenis({
             duration: 1.15,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             smoothWheel: true,
-            smoothTouch: false,             // touch devices already smooth
+            smoothTouch: false,
             wheelMultiplier: 1.0,
-            touchMultiplier: 1.5,
         });
         function rafLenis(time) {
             lenis.raf(time);
-            onScroll();                 /* sync hero fades every frame — fixes fast-scroll clipping */
+            onScroll();
             requestAnimationFrame(rafLenis);
         }
         requestAnimationFrame(rafLenis);
-
-        // Make anchor links use Lenis so motion stays smooth.
-        // POSITIVE offset = scroll PAST section top so heading lands close to navbar.
-        // Math: section internal padding-top is 128px, navbar ~60-65px tall.
-        // offset = 40 puts the heading at ~88px from the top — clears the navbar
-        // with ~25px of breathing room, but doesn't waste vertical space.
-        document.querySelectorAll('a[href^="#"]').forEach((link) => {
-            link.addEventListener('click', (e) => {
-                const href = link.getAttribute('href');
-                if (href.length <= 1) return;
-                const target = document.querySelector(href);
-                if (!target) return;
-                e.preventDefault();
-                lenis.scrollTo(target, { offset: 40 });
-            });
-        });
-
-        // expose for other scripts
         window.__lenis = lenis;
+    } else {
+        window.__lenis = null;
     }
+
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href.length <= 1) return;
+            const target = document.querySelector(href);
+            if (!target) return;
+            e.preventDefault();
+            if (window.__lenis) {
+                window.__lenis.scrollTo(target, { offset: 40 });
+            } else {
+                const y = target.getBoundingClientRect().top + window.scrollY - 40;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+        });
+    });
 
     /* ---------- 3. REVEAL OBSERVER ----------
        Apple-style: when an element enters the viewport it animates IN,
@@ -110,18 +116,21 @@
 
         // HERO CINEMATIC EXIT — drift down, scale up while fading (text only)
         if (heroContent) {
+            const mobile = isMobileView();
             const scaleEnd = heroScaleEnd();
             const scaleDelta = scaleEnd - 1;
+            const drift = mobile ? 0.22 : 0.35;
+            const fadeRate = mobile ? 1.4 : 1.2;
             if (scrollTop < vh * 1.2) {
                 const t = Math.min(scrollTop / vh, 1);
-                const translateY = scrollTop * 0.35;
+                const translateY = scrollTop * drift;
                 const scale = 1 + t * scaleDelta;
-                const opacity = Math.max(0, 1 - t * 1.2);
-                heroContent.style.transform = `translateY(${translateY}px) scale(${scale})`;
+                const opacity = Math.max(0, 1 - t * fadeRate);
+                heroContent.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
                 heroContent.style.opacity = String(opacity);
             } else {
                 heroContent.style.opacity = '0';
-                heroContent.style.transform = `translateY(${vh * 0.42}px) scale(${scaleEnd})`;
+                heroContent.style.transform = `translate3d(0, ${vh * (mobile ? 0.32 : 0.42)}px, 0) scale(${scaleEnd})`;
             }
         }
 
@@ -138,25 +147,29 @@
             heroButtons.style.pointerEvents = hidden ? 'none' : 'auto';
         }
 
-        // SECTION HEADERS — subtle horizontal drift as they pass through viewport
-        document.querySelectorAll('.section-header').forEach((h) => {
-            const rect = h.getBoundingClientRect();
-            const center = rect.top + rect.height / 2;
-            const fromCenter = (center - vh / 2) / vh;       // -1 .. 1 across viewport
-            if (Math.abs(fromCenter) < 1) {
-                const drift = fromCenter * -12;              // small parallax
-                h.style.transform = `translateX(${drift}px)`;
-            }
-        });
+        // SECTION HEADERS — subtle horizontal drift (desktop only; avoids mobile overflow)
+        if (!isMobileView()) {
+            document.querySelectorAll('.section-header').forEach((h) => {
+                const rect = h.getBoundingClientRect();
+                const center = rect.top + rect.height / 2;
+                const fromCenter = (center - vh / 2) / vh;
+                if (Math.abs(fromCenter) < 1) {
+                    const drift = fromCenter * -12;
+                    h.style.transform = `translateX(${drift}px)`;
+                }
+            });
+        }
     }
 
     let ticking = false;
-    window.addEventListener('scroll', () => {
+    function scheduleScrollUpdate() {
         if (!ticking) {
             requestAnimationFrame(() => { onScroll(); ticking = false; });
             ticking = true;
         }
-    }, { passive: true });
+    }
+    window.addEventListener('scroll', scheduleScrollUpdate, { passive: true });
+    window.addEventListener('resize', scheduleScrollUpdate, { passive: true });
     onScroll();
 
     /* ---------- 5. STAT COUNTERS ---------- */

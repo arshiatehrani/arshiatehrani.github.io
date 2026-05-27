@@ -126,6 +126,7 @@
 html {
     scroll-behavior: smooth;
     scroll-padding-top: 0;          /* sections handle their own anchor offset via scroll-margin-top */
+    overflow-x: hidden;
 }
 
 /* Lenis takes over scrolling — these styles let it work smoothly */
@@ -1613,6 +1614,21 @@ body::before {
 
     .section-line { display: none; }
     .section-title { white-space: normal; }
+
+    /* Clip hero zoom so scaled text does not blow out page width on phones */
+    .hero {
+        overflow: hidden;
+        touch-action: pan-y;
+    }
+
+    .hero-content {
+        transform-origin: 50% 42%;
+    }
+
+    .hero::before {
+        width: min(800px, 120vw);
+        height: min(800px, 120vw);
+    }
 
     .hero-buttons { flex-direction: column; align-items: center; }
     .btn { width: 100%; max-width: 280px; justify-content: center; }
