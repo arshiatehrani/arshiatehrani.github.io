@@ -78,21 +78,40 @@
     });
 
     /* ---------- 3. REVEAL OBSERVER ----------
-       Apple-style: when an element enters the viewport it animates IN,
-       when it leaves (scrolled past, above OR below) it animates OUT
-       so scrolling back triggers the animation again. */
+       Same in/out on mobile and desktop; mobile also syncs on scroll so fast
+       scroll-up does not leave the page empty while waiting for the observer. */
     const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+
+    function revealObserverOptions() {
+        if (isMobileView()) {
+            return { threshold: 0, rootMargin: '120px 0px 120px 0px' };
+        }
+        return { threshold: 0.08, rootMargin: '0px 0px -40px 0px' };
+    }
+
+    function setRevealVisible(el, visible) {
+        el.classList.toggle('visible', visible);
+    }
+
+    function syncRevealsInViewport() {
+        if (!isMobileView()) return;
+        const vh = window.innerHeight;
+        const margin = 120;
+        revealEls.forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            const inView = rect.top < vh + margin && rect.bottom > -margin;
+            setRevealVisible(el, inView);
+        });
+    }
+
     const revealObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
-            // Toggle the `visible` class based on whether the element is currently in view.
-            entry.target.classList.toggle('visible', entry.isIntersecting);
+            setRevealVisible(entry.target, entry.isIntersecting);
         });
-    }, {
-        threshold: 0.08,                            // fires sooner when item enters view
-        rootMargin: '0px 0px -40px 0px',            // smaller bottom inset = earlier trigger
-    });
+    }, revealObserverOptions());
 
     revealEls.forEach((el) => revealObserver.observe(el));
+    syncRevealsInViewport();
 
     /* ---------- 4. CINEMATIC SCROLL HANDLERS ---------- */
     const progressBar = document.querySelector('.scroll-progress');
@@ -162,13 +181,22 @@
     let ticking = false;
     function scheduleScrollUpdate() {
         if (!ticking) {
-            requestAnimationFrame(() => { onScroll(); ticking = false; });
+            requestAnimationFrame(() => {
+                onScroll();
+                syncRevealsInViewport();
+                ticking = false;
+            });
             ticking = true;
         }
     }
+
     window.addEventListener('scroll', scheduleScrollUpdate, { passive: true });
-    window.addEventListener('resize', scheduleScrollUpdate, { passive: true });
+    window.addEventListener('resize', () => {
+        scheduleScrollUpdate();
+        syncRevealsInViewport();
+    }, { passive: true });
     onScroll();
+    syncRevealsInViewport();
 
     /* ---------- 5. STAT COUNTERS ---------- */
     const counters = document.querySelectorAll('.stat-number');
