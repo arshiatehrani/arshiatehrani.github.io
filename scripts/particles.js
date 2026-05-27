@@ -352,7 +352,7 @@
     // NEAR — foreground, fast drift, big swirl radius
     const NEAR_CONFIG = {
         density: 0.00055,
-        maxParticles: 620,
+        maxParticles: 360,
         minSpeed: 0.30,
         maxSpeed: 1.05,
         minRadius: 1.4,
