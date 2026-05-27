@@ -182,6 +182,7 @@
                 vy: vy,
                 baseVx: vx,                                  // remembered for damping-back
                 baseVy: vy,
+                speed: speed * wobble,
                 r: isAccent
                     ? config.minRadius + Math.random() * (config.maxRadius - config.minRadius) * 1.8
                     : config.minRadius + Math.random() * (config.maxRadius - config.minRadius),
@@ -202,36 +203,55 @@
             p.y += p.vy * dt;
             p.twinkle += p.twinkleSpeed * dt;
 
-            // Cursor interaction — small "physical ball" pushing particles aside.
-            if (config.reactsToMouse && mouse.active && (mouseVx !== 0 || mouseVy !== 0)) {
+            // 1. Organic Fluid Steering Field (sinusoidal underwater harmonic currents)
+            const timeScale = p.twinkle * 0.15;
+            const flowAngle = Math.sin(p.x * 0.0035 + timeScale) * Math.PI 
+                            + Math.cos(p.y * 0.0035 - timeScale * 1.3) * Math.PI * 0.5;
+            
+            const currentSpeed = (p.speed || config.minSpeed) * 0.28;
+            const currentVx = Math.cos(flowAngle) * currentSpeed;
+            const currentVy = Math.sin(flowAngle) * currentSpeed;
+
+            // Gently blend the local fluid current into the natural drift velocity
+            p.vx += (currentVx - p.vx) * 0.015 * dt;
+            p.vy += (currentVy - p.vy) * 0.015 * dt;
+
+            // 2. Upgraded Dual-Action Cursor Interaction (Radial Repulsion + Momentum Transfer)
+            if (config.reactsToMouse && mouse.active) {
                 const dx = p.x - mouse.x;
                 const dy = (p.y + parallaxY) - mouse.y;
                 const distSq = dx * dx + dy * dy;
                 const isMobile = window.innerWidth <= 768;
-                const infl = isMobile ? config.mouseInfluence * 0.7 : config.mouseInfluence;
-                if (distSq < infl * infl) {
-                    const dist = Math.sqrt(distSq);
-                    const t = 1 - dist / infl;              // 0 at edge, 1 at cursor
-                    const eased = t * t * (3 - 2 * t);
+                const infl = isMobile ? config.mouseInfluence * 0.8 : config.mouseInfluence * 1.15;
 
-                    let frontness = 1;
-                    if (dist > 0.5) {
+                if (distSq < infl * infl) {
+                    const dist = Math.sqrt(distSq) || 0.1;
+                    const t = 1 - dist / infl;              // 0 at edge, 1 at center
+                    const eased = t * t * (3 - 2 * t);      // smoothstep easing
+
+                    // A. Radial Elastic Repulsion (creates a tactile bubble around cursor even when stationary)
+                    const repelForce = isMobile ? 0.38 : 0.95;
+                    const rx = (dx / dist) * repelForce * eased;
+                    const ry = (dy / dist) * repelForce * eased;
+                    p.vx += rx * dt;
+                    p.vy += ry * dt;
+
+                    // B. Dynamic Kinetic Push (transfers mouse swipe momentum)
+                    if (mouseVx !== 0 || mouseVy !== 0) {
                         const cursorMag = Math.sqrt(mouseVx * mouseVx + mouseVy * mouseVy);
                         if (cursorMag > 0.01) {
                             const cosTheta = (mouseVx * dx + mouseVy * dy) / (cursorMag * dist);
-                            frontness = Math.max(0, cosTheta);
+                            const frontness = Math.max(0, cosTheta);
+                            if (frontness > 0) {
+                                const CAP = isMobile ? 8 : 25;
+                                const cvx = Math.max(-CAP, Math.min(CAP, mouseVx));
+                                const cvy = Math.max(-CAP, Math.min(CAP, mouseVy));
+                                const force = isMobile ? config.mouseForce * 0.6 : config.mouseForce;
+                                const k = eased * force * frontness;
+                                p.vx += cvx * k * dt;
+                                p.vy += cvy * k * dt;
+                            }
                         }
-                    }
-
-                    if (frontness > 0) {
-                        // Clamp cursor velocity and apply dt scaling
-                        const CAP = isMobile ? 8 : 25;
-                        const cvx = Math.max(-CAP, Math.min(CAP, mouseVx));
-                        const cvy = Math.max(-CAP, Math.min(CAP, mouseVy));
-                        const force = isMobile ? config.mouseForce * 0.6 : config.mouseForce;
-                        const k = eased * force * frontness;
-                        p.vx += cvx * k * dt;
-                        p.vy += cvy * k * dt;
                     }
                 }
             }
@@ -288,10 +308,6 @@
             const viewGrid = new Array(viewCols * viewRows);
             for (let g = 0; g < viewGrid.length; g++) viewGrid[g] = [];
 
-            // Tracking active connections for triangle mesh generation
-            const connectedTo = new Array(particles.length);
-            for (let i = 0; i < particles.length; i++) connectedTo[i] = [];
-
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
                 const sy = p.y + parallaxY;
@@ -336,13 +352,6 @@
                                         const lineAlpha = smooth * config.lineOpacity;
                                         if (lineAlpha < 0.01) continue;
 
-                                        // Store connection uniquely by indexing smallest to largest to enable loop tracking
-                                        const pMin = Math.min(i, j);
-                                        const pMax = Math.max(i, j);
-                                        if (connectedTo[pMin].indexOf(pMax) === -1) {
-                                            connectedTo[pMin].push(pMax);
-                                        }
-
                                         const useAccent = (a.accent || b.accent);
                                         ctx.beginPath();
                                         ctx.moveTo(a.x, ay);
@@ -354,41 +363,6 @@
                                     }
                                 }
                             }
-                        }
-                    }
-                }
-            }
-
-            // Draw extremely soft, organic triangular faces between mutually connected loops
-            for (let i = 0; i < particles.length; i++) {
-                const neighbors = connectedTo[i];
-                if (neighbors.length < 2) continue;
-                const a = particles[i];
-                const ay = a.y + parallaxY;
-
-                for (let n1 = 0; n1 < neighbors.length; n1++) {
-                    const j = neighbors[n1];
-                    const b = particles[j];
-                    const by = b.y + parallaxY;
-
-                    for (let n2 = n1 + 1; n2 < neighbors.length; n2++) {
-                        const k = neighbors[n2];
-                        const c = particles[k];
-                        const cy = c.y + parallaxY;
-
-                        // If j is also connected to k, we have a mutual triangle loop!
-                        if (connectedTo[j] && connectedTo[j].indexOf(k) !== -1) {
-                            ctx.beginPath();
-                            ctx.moveTo(a.x, ay);
-                            ctx.lineTo(b.x, by);
-                            ctx.lineTo(c.x, cy);
-                            ctx.closePath();
-
-                            const alpha = (config.lineOpacity || 0.3) * 0.09;
-                            const useAccent = (a.accent || b.accent || c.accent);
-                            ctx.fillStyle = (useAccent ? config.colors.accentLineColor : config.colors.lineColor)
-                                + alpha + ')';
-                            ctx.fill();
                         }
                     }
                 }
