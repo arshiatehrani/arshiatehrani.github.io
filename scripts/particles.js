@@ -370,7 +370,7 @@
 
     // NEAR — foreground (maxParticles = count per screen; site-wide via spawn × page height)
     const NEAR_CONFIG = {
-        maxParticles: 100,
+        maxParticles: 90,
         minSpeed: 0.12,
         maxSpeed: 0.48,
         minRadius: 1.4,
@@ -388,9 +388,9 @@
         mouseForce: 0.45,                               // strong transfer inside the ball
     };
 
-    // BACK — background (10× foreground per screen, site-wide distribution)
+    // BACK — background (8× foreground per screen, site-wide distribution)
     const BACK_CONFIG = {
-        maxParticles: 1000,
+        maxParticles: 720,
         baseOpacityMin: 0.42,
         baseOpacityRange: 0.38,
         minSpeed: 0.24,
