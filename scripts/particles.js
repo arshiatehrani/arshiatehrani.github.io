@@ -71,8 +71,23 @@
         let worldMinX = 0, worldMaxX = 0, worldMinY = 0, worldMaxY = 0;
 
         const MARGIN_X = 30;
-        const MARGIN_Y_BELOW = 150;   /* matches scatter wrap below viewport */
+        const WRAP_Y_NEAR = 30;
+        const MARGIN_Y_BELOW = 150;
         const MARGIN_Y_ABOVE = 150;
+
+        function parallaxScrollReserve() {
+            const factor = config.parallaxFactor || 0;
+            if (!factor || !height) return MARGIN_Y_BELOW;
+            const pageScroll = Math.max(0, (document.documentElement.scrollHeight || height) - height);
+            return Math.min(height * 2, pageScroll * factor + MARGIN_Y_BELOW);
+        }
+
+        function computeWorldBounds() {
+            worldMinX = -MARGIN_X;
+            worldMaxX = width + MARGIN_X;
+            worldMinY = -WRAP_Y_NEAR - MARGIN_Y_ABOVE;
+            worldMaxY = height + WRAP_Y_NEAR + parallaxScrollReserve();
+        }
 
         function resize() {
             width = window.innerWidth;
@@ -93,10 +108,7 @@
 
         function buildGridSkeleton() {
             const cellSize = gridCellSize();
-            worldMinX = -MARGIN_X;
-            worldMaxX = width + MARGIN_X;
-            worldMinY = -30 - MARGIN_Y_ABOVE;
-            worldMaxY = height + 30 + MARGIN_Y_BELOW;
+            computeWorldBounds();
             cols = Math.ceil((worldMaxX - worldMinX) / cellSize) + 1;
             rows = Math.ceil((worldMaxY - worldMinY) / cellSize) + 1;
             grid = new Array(cols * rows);
@@ -114,12 +126,20 @@
         }
 
         function spawn() {
-            const target = Math.min(
+            computeWorldBounds();
+            const target = Math.max(0, Math.min(
                 config.maxParticles,
                 Math.floor(width * height * config.density)
-            );
+            ));
             particles = [];
             for (let i = 0; i < target; i++) particles.push(make());
+        }
+
+        function randomSpawnY() {
+            if (Math.random() < 0.7) {
+                return Math.random() * height;
+            }
+            return height + Math.random() * Math.max(1, worldMaxY - height);
         }
 
         function make() {
@@ -130,7 +150,7 @@
             const vy = Math.sin(angle) * speed;
             return {
                 x: Math.random() * width,
-                y: Math.random() * height,
+                y: randomSpawnY(),
                 vx: vx,
                 vy: vy,
                 baseVx: vx,                                  // remembered for damping-back
@@ -218,18 +238,18 @@
             // re-enters at a random spot on the opposite edge (random X and a
             // randomized Y band) — this breaks up the "horizontal line of new
             // particles" artifact that appeared on fast scrolls.
-            if (p.x < -30) {
-                p.x = width + 30;
+            if (p.x < -MARGIN_X) {
+                p.x = width + MARGIN_X;
                 p.y = Math.random() * height;
-            } else if (p.x > width + 30) {
-                p.x = -30;
+            } else if (p.x > width + MARGIN_X) {
+                p.x = -MARGIN_X;
                 p.y = Math.random() * height;
             }
-            if (p.y < -30) {
-                p.y = height + 30 + Math.random() * 120;     // 30-150px below screen
+            if (p.y < worldMinY) {
+                p.y = height + WRAP_Y_NEAR + Math.random() * (worldMaxY - height - WRAP_Y_NEAR);
                 p.x = Math.random() * width;
-            } else if (p.y > height + 30) {
-                p.y = -30 - Math.random() * 120;
+            } else if (p.y > worldMaxY) {
+                p.y = worldMinY + Math.random() * (WRAP_Y_NEAR + MARGIN_Y_ABOVE);
                 p.x = Math.random() * width;
             }
         }
