@@ -154,6 +154,17 @@
         );
     }
 
+    function scrollToAnchor(target) {
+        const gap = anchorScrollOffset();
+        /* One shared Y for Lenis + native — Lenis *adds* offset to scroll, so don't pass +gap there */
+        const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - gap);
+        if (window.__lenis) {
+            window.__lenis.scrollTo(y);
+        } else {
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+    }
+
     document.querySelectorAll('a[href^="#"]').forEach((link) => {
         link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
@@ -161,13 +172,8 @@
             const target = resolveAnchorTarget(href);
             if (!target) return;
             e.preventDefault();
-            const offset = anchorScrollOffset();
-            if (window.__lenis) {
-                window.__lenis.scrollTo(target, { offset });
-            } else {
-                const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
-                window.scrollTo({ top: y, behavior: 'smooth' });
-            }
+            /* rAF: stable layout after any in-flight Lenis scroll (fixes "first click too high") */
+            requestAnimationFrame(() => scrollToAnchor(target));
         });
     });
 
