@@ -59,7 +59,7 @@
     function makeLayer(canvasId, config) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
-        const ctx = canvas.getContext('2d', { alpha: true });
+        const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
 
         let particles = [];
         let width = 0, height = 0;
@@ -321,8 +321,8 @@
 
     // NEAR — foreground, fast drift, big swirl radius
     const NEAR_CONFIG = {
-        density: 0.00048,
-        maxParticles: 480,
+        density: 0.00055,
+        maxParticles: 620,
         minSpeed: 0.30,
         maxSpeed: 1.05,
         minRadius: 1.4,
@@ -342,8 +342,8 @@
 
     // BACK — distant, slower, gentler swirl
     const BACK_CONFIG = {
-        density: 0.00028,
-        maxParticles: 320,
+        density: 0.00030,
+        maxParticles: 360,
         minSpeed: 0.15,
         maxSpeed: 0.45,
         minRadius: 0.7,
@@ -361,27 +361,11 @@
         mouseForce: 0.30,                               // distant layer still moves but a touch less
     };
 
-    /* Lighter settings on phones / low-end devices (same look, less GPU work) */
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const isLowPower = isMobile
-        || window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        || ((navigator.hardwareConcurrency || 8) <= 4);
-
-    if (isLowPower) {
-        NEAR_CONFIG.maxParticles = Math.min(NEAR_CONFIG.maxParticles, isMobile ? 220 : 320);
-        NEAR_CONFIG.density *= 0.65;
-        NEAR_CONFIG.connectionDistance = 105;
-        NEAR_CONFIG.drawGlow = false;
-        NEAR_CONFIG.parallaxFactor *= 0.5;
-        BACK_CONFIG.maxParticles = Math.min(BACK_CONFIG.maxParticles, 140);
-        BACK_CONFIG.density *= 0.65;
-    }
-
     /* ============================================================
        Build & run
        ============================================================ */
     const layers = [
-        isMobile ? null : makeLayer('particle-canvas-back', BACK_CONFIG),
+        makeLayer('particle-canvas-back', BACK_CONFIG),
         makeLayer('particle-canvas', NEAR_CONFIG),
     ].filter(Boolean);
 
