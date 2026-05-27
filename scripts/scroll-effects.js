@@ -142,32 +142,6 @@
         return navH + progressH + 24; /* fixed nav + progress bar + gap below */
     }
 
-    /* Scroll to the heading, not the section box (skips large section top padding) */
-    function resolveAnchorTarget(hash) {
-        const section = document.querySelector(hash);
-        if (!section) return null;
-        if (section.id === 'hero') {
-            return section.querySelector('.hero-motion') || section;
-        }
-        return (
-            section.querySelector('.section-header')
-            || section.querySelector('.section-motion')
-            || section
-        );
-    }
-
-    /* Reveal headers sit 18px lower until .visible — prime first so scroll math matches final layout */
-    function primeAnchorTarget(target) {
-        if (
-            target.classList.contains('reveal')
-            || target.classList.contains('reveal-left')
-            || target.classList.contains('reveal-right')
-        ) {
-            target.classList.add('visible');
-            void target.offsetHeight;
-        }
-    }
-
     function scrollToAnchor(target) {
         const lenis = window.__lenis;
 
@@ -175,29 +149,23 @@
             lenis.scrollTo(lenis.actualScroll, { immediate: true });
         }
 
-        // Temporarily clear transforms on all section-motion wrappers
-        // so we can calculate the true layout positions of target elements
-        const motionWrappers = document.querySelectorAll('.section-motion');
-        const savedTransforms = [];
-        motionWrappers.forEach((el, i) => {
-            savedTransforms[i] = el.style.transform;
-            el.style.transform = 'none';
-        });
-
-        // Prime and clear transform on target itself to get true coordinates
-        primeAnchorTarget(target);
-        const savedTargetTransform = target.style.transform;
-        target.style.transform = 'none';
-
         const gap = anchorScrollOffset();
         const scroll = lenis ? lenis.scroll : window.scrollY;
-        const y = Math.max(0, Math.round(target.getBoundingClientRect().top + scroll - gap));
 
-        // Restore transforms immediately (completely layout-invisible)
-        motionWrappers.forEach((el, i) => {
-            el.style.transform = savedTransforms[i];
-        });
-        target.style.transform = savedTargetTransform;
+        let y = 0;
+        if (target.id !== 'hero') {
+            const targetTop = target.getBoundingClientRect().top + scroll;
+            if (target.tagName.toLowerCase() === 'section') {
+                // If it is a section, align to the section's content (below the top padding)
+                // This is extremely robust because <section> elements are completely static and unaffected by any scale/fade transforms inside them!
+                const style = window.getComputedStyle(target);
+                const paddingTop = parseFloat(style.paddingTop) || 0;
+                y = Math.max(0, Math.round(targetTop + paddingTop - gap));
+            } else {
+                // Fallback for any other custom elements
+                y = Math.max(0, Math.round(targetTop - gap));
+            }
+        }
 
         if (lenis) {
             lenis.scrollTo(y);
@@ -210,7 +178,7 @@
         link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
             if (href.length <= 1) return;
-            const target = resolveAnchorTarget(href);
+            const target = document.querySelector(href);
             if (!target) return;
             e.preventDefault();
             scrollToAnchor(target);
