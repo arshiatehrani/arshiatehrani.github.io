@@ -70,10 +70,10 @@
         let cols = 0, rows = 0;
         let worldMinX = 0, worldMaxX = 0, worldMinY = 0, worldMaxY = 0;
 
-        /* Must match scatter wrap margins in update() */
+        /* Must match scatter wrap margins in update() — symmetric above/below viewport */
         const MARGIN_X = 30;
-        const MARGIN_Y_TOP = 30;
-        const MARGIN_Y_BOTTOM = 150;
+        const WRAP_Y_NEAR = 30;          /* original near-edge scatter offset */
+        const MARGIN_Y_EXTENT = 150;     /* how far above/below screen particles live */
 
         function resize() {
             width = window.innerWidth;
@@ -88,12 +88,17 @@
             buildGridSkeleton();
         }
 
+        function gridCellSize() {
+            /* Finer buckets than connection distance — same link range, less edge pile-up */
+            return (config.connectionDistance || 100) * 0.5;
+        }
+
         function buildGridSkeleton() {
-            const cellSize = config.connectionDistance || 100;
+            const cellSize = gridCellSize();
             worldMinX = -MARGIN_X;
             worldMaxX = width + MARGIN_X;
-            worldMinY = -MARGIN_Y_TOP - MARGIN_Y_BOTTOM;
-            worldMaxY = height + MARGIN_Y_TOP + MARGIN_Y_BOTTOM;
+            worldMinY = -WRAP_Y_NEAR - MARGIN_Y_EXTENT;
+            worldMaxY = height + WRAP_Y_NEAR + MARGIN_Y_EXTENT;
             cols = Math.ceil((worldMaxX - worldMinX) / cellSize) + 1;
             rows = Math.ceil((worldMaxY - worldMinY) / cellSize) + 1;
             grid = new Array(cols * rows);
@@ -101,7 +106,7 @@
         }
 
         function particleCell(p) {
-            const cellSize = config.connectionDistance || 100;
+            const cellSize = gridCellSize();
             const cx = ((p.x - worldMinX) / cellSize) | 0;
             const cy = ((p.y - worldMinY) / cellSize) | 0;
             return {
@@ -217,11 +222,11 @@
                 p.x = -MARGIN_X;
                 p.y = Math.random() * height;
             }
-            if (p.y < -MARGIN_Y_TOP) {
-                p.y = height + MARGIN_Y_TOP + Math.random() * MARGIN_Y_BOTTOM;
+            if (p.y < -MARGIN_Y_EXTENT) {
+                p.y = height + WRAP_Y_NEAR + Math.random() * MARGIN_Y_EXTENT;
                 p.x = Math.random() * width;
-            } else if (p.y > height + MARGIN_Y_TOP) {
-                p.y = -MARGIN_Y_TOP - Math.random() * MARGIN_Y_BOTTOM;
+            } else if (p.y > height + MARGIN_Y_EXTENT) {
+                p.y = -WRAP_Y_NEAR - Math.random() * MARGIN_Y_EXTENT;
                 p.x = Math.random() * width;
             }
         }
@@ -233,7 +238,6 @@
             if (!config.drawConnections) return;
             const maxDist = config.connectionDistance;
             const maxDistSq = maxDist * maxDist;
-            const cellSize = maxDist;
 
             // 1) clear grid buckets
             for (let i = 0; i < grid.length; i++) grid[i].length = 0;
@@ -257,10 +261,10 @@
                         const i = cell[ci];
                         const a = particles[i];
 
-                        // check same cell (j > i) + neighbors right/below to avoid dupes
-                        for (let dy = 0; dy <= 1; dy++) {
+                        // all 8 neighbors + same cell (symmetric — fixes missing links below viewport)
+                        for (let dy = -1; dy <= 1; dy++) {
                             for (let dx = -1; dx <= 1; dx++) {
-                                if (dy === 0 && dx < 0) continue;       // skip already-checked half
+                                if (dy < 0 || (dy === 0 && dx <= 0)) continue;
                                 const ncx = cx + dx;
                                 const ncy = cy + dy;
                                 if (ncx < 0 || ncx >= cols || ncy < 0 || ncy >= rows) continue;
@@ -269,8 +273,7 @@
 
                                 for (let cj = 0; cj < ncell.length; cj++) {
                                     const j = ncell[cj];
-                                    if (j <= i && !(dx !== 0 || dy !== 0)) continue;  // same cell + same index
-                                    if (dx === 0 && dy === 0 && j <= i) continue;
+                                    if (j <= i && dy === 0 && dx === 0) continue;
                                     const b = particles[j];
                                     const bdx = a.x - b.x;
                                     const bdy = a.y - b.y;
