@@ -17,6 +17,12 @@
         mobileBreakpointPx: 768,   /* match main.css @media (max-width: 768px) */
     };
 
+    /* Other sections: grow 0.75 → 1 while entering, reverse on scroll-up */
+    const SECTION_EXIT = {
+        scaleMin: 0.75,
+        scaleMax: 1,
+    };
+
     function isMobileView() {
         return window.innerWidth <= HERO_EXIT.mobileBreakpointPx;
     }
@@ -24,6 +30,70 @@
     function heroScaleEnd() {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 1;
         return isMobileView() ? HERO_EXIT.scaleMobile : HERO_EXIT.scaleDesktop;
+    }
+
+    function prefersReducedMotion() {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    /* 0 at edges, 1 when settled — reverses on scroll-up */
+    function sectionFocusT(rect, vh) {
+        const top = rect.top;
+        const bottom = rect.bottom;
+        const enterEnd = vh * 0.14;
+        const enterStart = vh;
+        let tIn = 1;
+        if (top > enterEnd) {
+            tIn = top >= enterStart ? 0 : 1 - (top - enterEnd) / (enterStart - enterEnd);
+        }
+        const exitStart = vh * 0.9;
+        const exitEnd = vh * 0.1;
+        let tOut = 1;
+        if (bottom < exitStart) {
+            tOut = bottom <= exitEnd ? 0 : (bottom - exitEnd) / (exitStart - exitEnd);
+        }
+        return Math.max(0, Math.min(1, Math.min(tIn, tOut)));
+    }
+
+    /* Inner wrapper so section fade/scale layers on top of per-item reveals */
+    function initSectionMotionWrappers() {
+        const motions = [];
+        document.querySelectorAll('section.section > .container').forEach((container) => {
+            if (container.querySelector(':scope > .section-motion')) {
+                motions.push(container.querySelector(':scope > .section-motion'));
+                return;
+            }
+            const wrap = document.createElement('div');
+            wrap.className = 'section-motion';
+            while (container.firstChild) {
+                wrap.appendChild(container.firstChild);
+            }
+            container.appendChild(wrap);
+            motions.push(wrap);
+        });
+        return motions;
+    }
+
+    function applySectionMotions() {
+        if (prefersReducedMotion()) {
+            sectionMotions.forEach((el) => {
+                el.style.transform = '';
+                el.style.opacity = '';
+            });
+            return;
+        }
+        const vh = window.innerHeight;
+        const { scaleMin, scaleMax } = SECTION_EXIT;
+        const fadeStrength = isMobileView() ? 1.15 : 1;
+        sectionMotions.forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            const raw = sectionFocusT(rect, vh);
+            const t = raw * raw * (3 - 2 * raw);
+            const scale = scaleMin + t * (scaleMax - scaleMin);
+            const opacity = Math.max(0, Math.min(1, t * fadeStrength));
+            el.style.transform = `scale(${scale})`;
+            el.style.opacity = String(opacity);
+        });
     }
 
     /* ---------- 1. STAGGERED CHILD REVEALS ---------- */
@@ -35,6 +105,9 @@
             child.style.setProperty('--stagger', i);
         });
     });
+
+    /* Wrap section content after stagger so grid --stagger vars stay intact */
+    const sectionMotions = initSectionMotionWrappers();
 
     /* ---------- 2. LENIS SMOOTH SCROLL (desktop only — native scroll on mobile) ---------- */
     let lenis = null;
@@ -78,8 +151,8 @@
     });
 
     /* ---------- 3. REVEAL OBSERVER ----------
-       Same replay on scroll-up as desktop. Mobile adds scroll sync + a short
-       hide delay so items are not toggled off in one frame (animation stays visible). */
+       All .reveal / .reveal-left / .reveal-right (including inside .section-motion).
+       Same replay on scroll-up as desktop. Mobile: scroll sync + delayed hide. */
     const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
     const REVEAL_HIDE_DELAY_MS = 240;
     const pendingRevealHide = new WeakMap();
@@ -195,16 +268,23 @@
             heroButtons.style.pointerEvents = hidden ? 'none' : 'auto';
         }
 
-        // SECTION HEADERS — subtle horizontal drift (desktop only; avoids mobile overflow)
+        applySectionMotions();
+
+        // SECTION HEADERS — horizontal drift via CSS var (does not override .reveal transforms)
         if (!isMobileView()) {
-            document.querySelectorAll('.section-header').forEach((h) => {
+            document.querySelectorAll('.section-header.reveal').forEach((h) => {
                 const rect = h.getBoundingClientRect();
                 const center = rect.top + rect.height / 2;
                 const fromCenter = (center - vh / 2) / vh;
                 if (Math.abs(fromCenter) < 1) {
-                    const drift = fromCenter * -12;
-                    h.style.transform = `translateX(${drift}px)`;
+                    h.style.setProperty('--header-drift', `${(fromCenter * -12).toFixed(2)}px`);
+                } else {
+                    h.style.removeProperty('--header-drift');
                 }
+            });
+        } else {
+            document.querySelectorAll('.section-header.reveal').forEach((h) => {
+                h.style.removeProperty('--header-drift');
             });
         }
     }
