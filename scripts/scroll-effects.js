@@ -95,18 +95,19 @@
             else navbar.classList.remove('scrolled');
         }
 
-        // HERO CINEMATIC EXIT — drift down, scale up slightly, fade (text only)
+        // HERO CINEMATIC EXIT — drift down, scale up while fading (text only)
         if (heroContent) {
+            const heroScaleMax = 0.32;   /* 1 → 1.32 across first viewport of scroll */
             if (scrollTop < vh * 1.2) {
                 const t = Math.min(scrollTop / vh, 1);
                 const translateY = scrollTop * 0.35;
-                const scale = 1 + t * 0.12;
+                const scale = 1 + t * heroScaleMax;
                 const opacity = Math.max(0, 1 - t * 1.2);
                 heroContent.style.transform = `translateY(${translateY}px) scale(${scale})`;
                 heroContent.style.opacity = String(opacity);
             } else {
                 heroContent.style.opacity = '0';
-                heroContent.style.transform = `translateY(${vh * 0.42}px) scale(1.12)`;
+                heroContent.style.transform = `translateY(${vh * 0.42}px) scale(${1 + heroScaleMax})`;
             }
         }
 
