@@ -146,9 +146,21 @@
             /* maxParticles = per-screen target; × page length for site-wide uniform spread */
             const pageScale = Math.max(1, pageHeight / height);
             const target = Math.min(8000, Math.floor(config.maxParticles * pageScale));
-            particles = [];
-            for (let i = 0; i < target; i++) {
-                particles.push(make(randomPageY()));
+            
+            if (particles.length === 0) {
+                // First spawn: build the full target
+                for (let i = 0; i < target; i++) {
+                    particles.push(make(randomPageY()));
+                }
+            } else if (particles.length < target) {
+                // Viewport grew: add new particles without resetting existing active ones!
+                const diff = target - particles.length;
+                for (let i = 0; i < diff; i++) {
+                    particles.push(make(randomPageY()));
+                }
+            } else if (particles.length > target) {
+                // Viewport shrunk: trim smoothly from the end to preserve remaining active ones
+                particles.length = target;
             }
         }
 
@@ -181,25 +193,16 @@
             };
         }
 
-        /* p.y is document-space; parallax is render-only (screen y = p.y + parallaxOffset). */
-        function parallaxOffset() {
-            return -window.scrollY * (config.parallaxFactor || 0);
+        function parallaxOffset(scrollYVal) {
+            return -scrollYVal * (1 - (config.parallaxFactor || 0));
         }
 
-        function update(p, mouse, parallaxY, mouseVx, mouseVy) {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.twinkle += p.twinkleSpeed;
+        function update(p, mouse, parallaxY, mouseVx, mouseVy, dt) {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.twinkle += p.twinkleSpeed * dt;
 
             // Cursor interaction — small "physical ball" pushing particles aside.
-            // Particles get nudged in the cursor's direction of motion, but ONLY:
-            //   - when the cursor is moving (mouseVx/mouseVy not both zero),
-            //   - within a tight radius around the cursor, AND
-            //   - when they are AHEAD of the cursor's motion direction.
-            // The dot product between the cursor's velocity vector and the
-            // (cursor → particle) vector tells us whether the particle is in
-            // front (dot > 0) or behind (dot < 0). Only those in front are
-            // pushed, just like water in front of a moving hand.
             if (config.reactsToMouse && mouse.active && (mouseVx !== 0 || mouseVy !== 0)) {
                 const dx = p.x - mouse.x;
                 const dy = (p.y + parallaxY) - mouse.y;
@@ -211,9 +214,6 @@
                     const t = 1 - dist / infl;              // 0 at edge, 1 at cursor
                     const eased = t * t * (3 - 2 * t);
 
-                    // "Frontness" — 1 if particle is directly in cursor's path,
-                    // 0 if perpendicular, 0 if behind. Particles touching the
-                    // cursor exactly (dist≈0) always count as "in front".
                     let frontness = 1;
                     if (dist > 0.5) {
                         const cursorMag = Math.sqrt(mouseVx * mouseVx + mouseVy * mouseVy);
@@ -224,25 +224,22 @@
                     }
 
                     if (frontness > 0) {
-                        // Clamp cursor velocity so very fast flicks don't blast
-                        // particles across the page — keeps motion believable.
-                        // On mobile, clamp much tighter to prevent touch swipes from flinging particles.
+                        // Clamp cursor velocity and apply dt scaling
                         const CAP = isMobile ? 8 : 25;
                         const cvx = Math.max(-CAP, Math.min(CAP, mouseVx));
                         const cvy = Math.max(-CAP, Math.min(CAP, mouseVy));
                         const force = isMobile ? config.mouseForce * 0.6 : config.mouseForce;
                         const k = eased * force * frontness;
-                        p.vx += cvx * k;
-                        p.vy += cvy * k;
+                        p.vx += cvx * k * dt;
+                        p.vy += cvy * k * dt;
                     }
                 }
             }
 
-            // Damp velocity back toward natural drift. Anything the cursor adds
-            // bleeds off over ~0.4-0.6 s, leaving the original trajectory.
-            const damp = 0.07;
-            p.vx += (p.baseVx - p.vx) * damp;
-            p.vy += (p.baseVy - p.vy) * damp;
+            // Damp velocity back toward natural drift, framedelta adjusted.
+            const damp = 0.07 * dt;
+            p.vx += (p.baseVx - p.vx) * Math.min(0.99, damp);
+            p.vy += (p.baseVy - p.vy) * Math.min(0.99, damp);
 
             // Hard speed cap — safety net against runaway velocity.
             const maxV = config.maxSpeed * 6;
@@ -377,10 +374,10 @@
             }
         }
 
-        function render(mouse, mouseVx, mouseVy) {
-            const parallaxY = parallaxOffset();
+        function render(mouse, mouseVx, mouseVy, dt, scrollYVal) {
+            const parallaxY = parallaxOffset(scrollYVal);
             ctx.clearRect(0, 0, width, height);
-            for (const p of particles) update(p, mouse, parallaxY, mouseVx, mouseVy);
+            for (const p of particles) update(p, mouse, parallaxY, mouseVx, mouseVy, dt);
             drawConnections(parallaxY);
             for (const p of particles) drawParticle(p, parallaxY);
         }
@@ -482,23 +479,37 @@
         mouse.y = -1000;
     });
 
-    /* Animation loop — also tracks cursor velocity per frame. When the cursor
-       is still, mouseVx/mouseVy decay to 0 within a frame and particles drift
-       freely through the influence circle. */
+    /* Animation loop — delta-time corrected & scroll interpolated for cinematic smoothness */
     let animationId = null;
     let prevMouseX = mouse.x;
     let prevMouseY = mouse.y;
-    function animate() {
+    let lastTime = performance.now();
+    let currentScrollY = window.scrollY;
+
+    function animate(currentTime) {
+        if (!currentTime) currentTime = performance.now();
+        const rawDt = currentTime - lastTime;
+        lastTime = currentTime;
+
+        // Clamp rawDt to 100ms max to prevent massive leaps when swapping windows/tabs,
+        // and normalize to standard 60fps frame rate (16.66ms per frame = 1.0)
+        const dt = Math.min(100, rawDt) / 16.666;
+
+        // Smooth scroll interpolation (smooths out scroll events, dynamic mobile toolbars, touch swipes)
+        const targetScrollY = window.scrollY;
+        currentScrollY += (targetScrollY - currentScrollY) * Math.min(1.0, 0.35 * dt);
+
         let mvx = 0;
         let mvy = 0;
-        // Only compute velocity if pointer was active and on screen in both the current and previous frame
+        // Only compute velocity if pointer was active and on screen in both current and previous frames
         if (mouse.active && prevMouseX > -500 && mouse.x > -500) {
             mvx = mouse.x - prevMouseX;
             mvy = mouse.y - prevMouseY;
         }
         prevMouseX = mouse.x;
         prevMouseY = mouse.y;
-        for (const layer of layers) layer.render(mouse, mvx, mvy);
+
+        for (const layer of layers) layer.render(mouse, mvx, mvy, dt, currentScrollY);
         animationId = requestAnimationFrame(animate);
     }
 
@@ -524,6 +535,7 @@
             if (animationId) cancelAnimationFrame(animationId);
             animationId = null;
         } else if (!animationId) {
+            lastTime = performance.now(); // reset timestamp to prevent delta jumps when resuming!
             animate();
         }
     });
