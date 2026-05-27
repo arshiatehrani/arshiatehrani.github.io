@@ -93,12 +93,24 @@
             return (config.connectionDistance || 100) * 0.5;
         }
 
-        function buildGridSkeleton() {
-            const cellSize = gridCellSize();
+        /* Extra band below the viewport so render-only parallax can pull particles in while scrolling */
+        function parallaxScrollReserve() {
+            const factor = config.parallaxFactor || 0;
+            if (!factor || !height) return 0;
+            const pageScroll = Math.max(0, (document.documentElement.scrollHeight || height) - height);
+            return Math.min(height * 2, pageScroll * factor + MARGIN_Y_EXTENT);
+        }
+
+        function computeWorldBounds() {
             worldMinX = -MARGIN_X;
             worldMaxX = width + MARGIN_X;
             worldMinY = -WRAP_Y_NEAR - MARGIN_Y_EXTENT;
-            worldMaxY = height + WRAP_Y_NEAR + MARGIN_Y_EXTENT;
+            worldMaxY = height + WRAP_Y_NEAR + MARGIN_Y_EXTENT + parallaxScrollReserve();
+        }
+
+        function buildGridSkeleton() {
+            const cellSize = gridCellSize();
+            computeWorldBounds();
             cols = Math.ceil((worldMaxX - worldMinX) / cellSize) + 1;
             rows = Math.ceil((worldMaxY - worldMinY) / cellSize) + 1;
             grid = new Array(cols * rows);
@@ -116,12 +128,20 @@
         }
 
         function spawn() {
+            computeWorldBounds();
             const target = Math.min(
                 config.maxParticles,
                 Math.floor(width * height * config.density)
             );
             particles = [];
             for (let i = 0; i < target; i++) particles.push(make());
+        }
+
+        function randomSpawnY() {
+            if (Math.random() < 0.65) {
+                return Math.random() * height;
+            }
+            return height + Math.random() * Math.max(1, worldMaxY - height);
         }
 
         function make() {
@@ -132,7 +152,7 @@
             const vy = Math.sin(angle) * speed;
             return {
                 x: Math.random() * width,
-                y: Math.random() * height,
+                y: randomSpawnY(),
                 vx: vx,
                 vy: vy,
                 baseVx: vx,                                  // remembered for damping-back
@@ -229,7 +249,7 @@
             if (p.y < -MARGIN_Y_EXTENT) {
                 p.y = height + WRAP_Y_NEAR + Math.random() * MARGIN_Y_EXTENT;
                 p.x = Math.random() * width;
-            } else if (p.y > height + MARGIN_Y_EXTENT) {
+            } else if (p.y > worldMaxY) {
                 p.y = -WRAP_Y_NEAR - Math.random() * MARGIN_Y_EXTENT;
                 p.x = Math.random() * width;
             }
@@ -361,7 +381,7 @@
         accentRatio: 0.18,
         drawConnections: true,
         drawGlow: true,
-        parallaxFactor: 0,                              /* scroll parallax empties the fixed viewport */
+        parallaxFactor: 0.18,
         colors: NEAR_COLORS,
         lineOpacity: 0.32,
         lineWidth: 0.8,
@@ -382,7 +402,7 @@
         accentRatio: 0.10,
         drawConnections: true,
         drawGlow: false,
-        parallaxFactor: 0,
+        parallaxFactor: 0.09,
         colors: BACK_COLORS,
         lineOpacity: 0.22,
         lineWidth: 0.55,
