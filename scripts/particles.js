@@ -204,7 +204,8 @@
                 const dx = p.x - mouse.x;
                 const dy = (p.y + parallaxY) - mouse.y;
                 const distSq = dx * dx + dy * dy;
-                const infl = config.mouseInfluence;
+                const isMobile = window.innerWidth <= 768;
+                const infl = isMobile ? config.mouseInfluence * 0.7 : config.mouseInfluence;
                 if (distSq < infl * infl) {
                     const dist = Math.sqrt(distSq);
                     const t = 1 - dist / infl;              // 0 at edge, 1 at cursor
@@ -225,10 +226,12 @@
                     if (frontness > 0) {
                         // Clamp cursor velocity so very fast flicks don't blast
                         // particles across the page — keeps motion believable.
-                        const CAP = 25;
+                        // On mobile, clamp much tighter to prevent touch swipes from flinging particles.
+                        const CAP = isMobile ? 8 : 25;
                         const cvx = Math.max(-CAP, Math.min(CAP, mouseVx));
                         const cvy = Math.max(-CAP, Math.min(CAP, mouseVy));
-                        const k = eased * config.mouseForce * frontness;
+                        const force = isMobile ? config.mouseForce * 0.6 : config.mouseForce;
+                        const k = eased * force * frontness;
                         p.vx += cvx * k;
                         p.vy += cvy * k;
                     }
@@ -441,23 +444,43 @@
 
     if (layers.length === 0) return;
 
-    /* Mouse tracking */
+    /* Mouse and Touch tracking */
     const mouse = { x: -1000, y: -1000, active: false };
-    window.addEventListener('mousemove', (e) => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
+
+    function setMousePos(clientX, clientY) {
+        mouse.x = clientX;
+        mouse.y = clientY;
         mouse.active = true;
+    }
+
+    window.addEventListener('mousemove', (e) => {
+        setMousePos(e.clientX, e.clientY);
     });
-    window.addEventListener('mouseleave', () => { mouse.active = false; });
-    window.addEventListener('touchmove', (e) => {
-        if (window.innerWidth <= 768) return; // ignore touch interaction on mobile to prevent messy drag-to-scroll scattering
+    window.addEventListener('mouseleave', () => {
+        mouse.active = false;
+        mouse.x = -1000;
+        mouse.y = -1000;
+    });
+
+    window.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
-            mouse.x = e.touches[0].clientX;
-            mouse.y = e.touches[0].clientY;
-            mouse.active = true;
+            setMousePos(e.touches[0].clientX, e.touches[0].clientY);
+            prevMouseX = mouse.x;
+            prevMouseY = mouse.y;
         }
     }, { passive: true });
-    window.addEventListener('touchend', () => { mouse.active = false; });
+
+    window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+            setMousePos(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+        mouse.active = false;
+        mouse.x = -1000;
+        mouse.y = -1000;
+    });
 
     /* Animation loop — also tracks cursor velocity per frame. When the cursor
        is still, mouseVx/mouseVy decay to 0 within a frame and particles drift
@@ -466,8 +489,13 @@
     let prevMouseX = mouse.x;
     let prevMouseY = mouse.y;
     function animate() {
-        const mvx = mouse.x - prevMouseX;
-        const mvy = mouse.y - prevMouseY;
+        let mvx = 0;
+        let mvy = 0;
+        // Only compute velocity if pointer was active and on screen in both the current and previous frame
+        if (mouse.active && prevMouseX > -500 && mouse.x > -500) {
+            mvx = mouse.x - prevMouseX;
+            mvy = mouse.y - prevMouseY;
+        }
         prevMouseX = mouse.x;
         prevMouseY = mouse.y;
         for (const layer of layers) layer.render(mouse, mvx, mvy);
