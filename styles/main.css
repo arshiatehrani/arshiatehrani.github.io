@@ -569,7 +569,7 @@ body::before {
     padding: 0 2rem;
 }
 
-/* Scroll-linked fade + scale (0.75 → 1) — layers on top of .reveal animations */
+/* Scroll-linked fade + scale (0.9 → 1) — layers on top of .reveal animations */
 .section-motion {
     transform-origin: center center;
     will-change: transform, opacity;

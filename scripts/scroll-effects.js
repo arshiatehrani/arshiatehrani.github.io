@@ -17,9 +17,9 @@
         mobileBreakpointPx: 768,   /* match main.css @media (max-width: 768px) */
     };
 
-    /* Other sections: grow 0.75 → 1 while entering, reverse on scroll-up */
+    /* Other sections: grow 0.9 → 1 while entering, reverse on scroll-up */
     const SECTION_EXIT = {
-        scaleMin: 0.75,
+        scaleMin: 0.9,
         scaleMax: 1,
     };
 
