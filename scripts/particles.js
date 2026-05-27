@@ -120,18 +120,24 @@
                 config.maxParticles,
                 Math.floor(width * height * config.density)
             ));
+            const py = parallaxOffset();
+            const visLo = Math.max(0, -py);
+            const visHi = Math.min(worldMaxY, Math.max(visLo + 1, height - py));
+            const visibleSpan = visHi - visLo;
+            const reserveSpan = Math.max(1, worldMaxY - height);
+            const visibleCount = Math.round(target * visibleSpan / (visibleSpan + reserveSpan));
+            const reserveCount = target - visibleCount;
+
             particles = [];
-            for (let i = 0; i < target; i++) particles.push(make());
-        }
-
-        function randomSpawnY() {
-            if (Math.random() < 0.7) {
-                return Math.random() * height;
+            for (let i = 0; i < visibleCount; i++) {
+                particles.push(make(visLo + Math.random() * visibleSpan));
             }
-            return height + Math.random() * Math.max(1, worldMaxY - height);
+            for (let i = 0; i < reserveCount; i++) {
+                particles.push(make(height + Math.random() * reserveSpan));
+            }
         }
 
-        function make() {
+        function make(spawnY) {
             const angle = Math.random() * Math.PI * 2;
             const speed = config.minSpeed + Math.random() * (config.maxSpeed - config.minSpeed);
             const isAccent = Math.random() < config.accentRatio;
@@ -139,7 +145,7 @@
             const vy = Math.sin(angle) * speed;
             return {
                 x: Math.random() * width,
-                y: randomSpawnY(),
+                y: spawnY,
                 vx: vx,
                 vy: vy,
                 baseVx: vx,                                  // remembered for damping-back
