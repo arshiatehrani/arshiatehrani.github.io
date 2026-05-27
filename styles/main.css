@@ -55,7 +55,7 @@
     --particle-mouse-rgb:       210, 225, 250;
     --particle-back-rgb:         74, 127, 179;
     --particle-back-accent-rgb: 176, 168, 196;
-    --particle-canvas-back-opacity: 0.55;
+    --particle-canvas-back-opacity: 0.62;
     --particle-canvas-near-opacity: 0.80;
 
     --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -110,7 +110,7 @@
     --particle-mouse-rgb:         0, 33, 71;
     --particle-back-rgb:         74, 127, 179;
     --particle-back-accent-rgb: 100,  80, 130;
-    --particle-canvas-back-opacity: 0.45;
+    --particle-canvas-back-opacity: 0.55;
     --particle-canvas-near-opacity: 0.70;
 }
 

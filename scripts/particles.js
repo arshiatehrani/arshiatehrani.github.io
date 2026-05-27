@@ -10,7 +10,7 @@
      - FADED COLORS: lower base opacity + softer glow.
      - Pauses when the tab is hidden.
 
-   Tune density / sizes / parallax in NEAR_CONFIG and BACK_CONFIG.
+   Tune maxParticles (per screen), sizes / parallax in NEAR_CONFIG and BACK_CONFIG.
    ============================================================ */
 (function () {
     'use strict';
@@ -122,12 +122,9 @@
 
         function spawn() {
             computeWorldBounds();
-            /* maxParticles = target per viewport; scale up for full-page distribution */
+            /* maxParticles = per-screen target; × page length for site-wide uniform spread */
             const pageScale = Math.max(1, pageHeight / height);
-            const scaled = Math.floor(config.maxParticles * pageScale);
-            const densityCap = Math.floor(width * pageHeight * config.density);
-            const hardCap = 5000;
-            const target = Math.max(0, Math.min(hardCap, scaled, densityCap));
+            const target = Math.min(8000, Math.floor(config.maxParticles * pageScale));
             particles = [];
             for (let i = 0; i < target; i++) {
                 particles.push(make(randomPageY()));
@@ -153,7 +150,8 @@
                 accent: isAccent,
                 twinkle: Math.random() * Math.PI * 2,
                 twinkleSpeed: 0.015 + Math.random() * 0.030,
-                baseOpacity: 0.30 + Math.random() * 0.30,
+                baseOpacity: (config.baseOpacityMin || 0.30)
+                    + Math.random() * (config.baseOpacityRange || 0.30),
             };
         }
 
@@ -362,12 +360,11 @@
     }
 
     /* ============================================================
-       LAYER CONFIGS — edit density / sizes / parallax here
+       LAYER CONFIGS — edit maxParticles / sizes / parallax here
        ============================================================ */
 
-    // NEAR — foreground (maxParticles ≈ count per screen; scaled to full page height in spawn)
+    // NEAR — foreground (maxParticles = count per screen; site-wide via spawn × page height)
     const NEAR_CONFIG = {
-        density: 0.00050,
         maxParticles: 360,
         minSpeed: 0.30,
         maxSpeed: 1.05,
@@ -386,10 +383,11 @@
         mouseForce: 0.45,                               // strong transfer inside the ball
     };
 
-    // BACK — background (2× near; scaled to full page height in spawn)
+    // BACK — background (2× foreground per screen, site-wide distribution)
     const BACK_CONFIG = {
-        density: 0.00100,
         maxParticles: 720,
+        baseOpacityMin: 0.42,
+        baseOpacityRange: 0.38,
         minSpeed: 0.15,
         maxSpeed: 0.45,
         minRadius: 0.7,
@@ -400,7 +398,7 @@
         drawGlow: false,
         parallaxFactor: 0.09,                           // slower scroll-coupling (depth)
         colors: BACK_COLORS,
-        lineOpacity: 0.22,
+        lineOpacity: 0.30,
         lineWidth: 0.55,
         reactsToMouse: true,
         mouseInfluence: 55,
