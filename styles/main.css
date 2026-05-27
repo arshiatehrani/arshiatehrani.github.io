@@ -704,37 +704,45 @@ body::before {
    TIMELINE (Netflix-style expandable)
    ============================================================ */
 .timeline {
+    --timeline-rail: 2.25rem;
+    --timeline-gap: 1.35rem;
+    --timeline-line-x: 7px;
     position: relative;
     margin-top: 3rem;
-    padding-left: 2rem;
+    padding-left: var(--timeline-rail);
+    display: flex;
+    flex-direction: column;
+    gap: var(--timeline-gap);
 }
 
 .timeline::before {
     content: '';
     position: absolute;
-    top: 10px;
-    bottom: 10px;
-    left: 0;
+    top: 0;
+    bottom: 0;
+    left: var(--timeline-line-x);
     width: 2px;
-    background: linear-gradient(to bottom, transparent 0%, var(--fog-blue) 15%, var(--fog-blue) 85%, transparent 100%);
+    transform: translateX(-50%);
+    background: linear-gradient(to bottom, transparent 0%, var(--fog-blue) 12%, var(--fog-blue) 88%, transparent 100%);
     opacity: 0.5;
 }
 
 .timeline-item {
     position: relative;
-    margin-bottom: 1.5rem;
+    margin: 0;
 }
 
 .timeline-marker {
     position: absolute;
-    left: -2.45rem;
-    top: 1.6rem;
+    left: calc(var(--timeline-line-x) - var(--timeline-rail));
+    top: 50%;
     width: 14px;
     height: 14px;
     border-radius: 50%;
     background: var(--bg-primary);
     border: 2px solid var(--fog-blue);
     z-index: 2;
+    transform: translate(-50%, -50%);
     transition: transform var(--transition-timeline), background var(--transition-timeline),
                 border-color var(--transition-timeline), box-shadow var(--transition-timeline);
 }
@@ -744,7 +752,7 @@ body::before {
 .timeline-item:has(.timeline-card[aria-expanded="true"]) .timeline-marker {
     background: var(--fog-blue);
     box-shadow: 0 0 0 6px rgba(74, 127, 179, 0.2), 0 0 20px rgba(74, 127, 179, 0.6);
-    transform: scale(1.15);
+    transform: translate(-50%, -50%) scale(1.15);
 }
 
 .timeline-card {
@@ -1619,8 +1627,52 @@ body::before {
     .publication-item { grid-template-columns: 1fr; gap: 0.75rem; padding: 1.5rem; }
     .pub-year { font-size: 1.3rem; }
 
-    .timeline { padding-left: 1.5rem; }
-    .timeline-marker { left: -1.85rem; }
+    .timeline {
+        --timeline-rail: 2rem;
+        --timeline-gap: 1.25rem;
+        --timeline-line-x: 6px;
+        padding-left: var(--timeline-rail);
+        margin-top: 2rem;
+    }
+
+    .timeline-item {
+        margin: 0;
+    }
+
+    .timeline-marker {
+        left: calc(var(--timeline-line-x) - var(--timeline-rail));
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 12px;
+        height: 12px;
+    }
+
+    .timeline-item:hover .timeline-marker,
+    .timeline-item:has(.timeline-card[aria-expanded="true"]) .timeline-marker {
+        transform: translate(-50%, -50%) scale(1.12);
+    }
+
+    .timeline-card {
+        padding: 1.2rem 2.75rem 1.2rem 1.15rem;
+    }
+
+    .timeline-card:hover {
+        transform: none;
+    }
+
+    .timeline-chevron {
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .timeline-card[aria-expanded="true"] .timeline-chevron {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .timeline-title {
+        font-size: 1.3rem;
+    }
 
     .section-line { display: none; }
     .section-title { white-space: normal; }
