@@ -151,12 +151,7 @@
            Applying parallax to physics Y pushed margin particles through wrap/grid
            at top/bottom; X edges had no scroll coupling, so left/right stayed smooth. */
         function parallaxOffset() {
-            const factor = config.parallaxFactor || 0;
-            if (!factor || !height) return 0;
-            const raw = -window.scrollY * factor;
-            /* Cap so long scrolls don't shift the whole field off the fixed viewport */
-            const cap = height * 0.35;
-            return Math.max(-cap, Math.min(cap, raw));
+            return -window.scrollY * (config.parallaxFactor || 0);
         }
 
         function update(p, mouse, parallaxY, mouseVx, mouseVy) {
@@ -366,7 +361,7 @@
         accentRatio: 0.18,
         drawConnections: true,
         drawGlow: true,
-        parallaxFactor: 0.18,                           // gentle scroll-coupled motion
+        parallaxFactor: 0,                              /* scroll parallax empties the fixed viewport */
         colors: NEAR_COLORS,
         lineOpacity: 0.32,
         lineWidth: 0.8,
@@ -387,7 +382,7 @@
         accentRatio: 0.10,
         drawConnections: true,
         drawGlow: false,
-        parallaxFactor: 0.09,                           // slower scroll-coupling (depth)
+        parallaxFactor: 0,
         colors: BACK_COLORS,
         lineOpacity: 0.22,
         lineWidth: 0.55,
