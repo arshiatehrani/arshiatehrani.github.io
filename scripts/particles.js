@@ -122,10 +122,12 @@
 
         function spawn() {
             computeWorldBounds();
-            const target = Math.max(0, Math.min(
-                config.maxParticles,
-                Math.floor(width * height * config.density)
-            ));
+            /* maxParticles = target per viewport; scale up for full-page distribution */
+            const pageScale = Math.max(1, pageHeight / height);
+            const scaled = Math.floor(config.maxParticles * pageScale);
+            const densityCap = Math.floor(width * pageHeight * config.density);
+            const hardCap = 5000;
+            const target = Math.max(0, Math.min(hardCap, scaled, densityCap));
             particles = [];
             for (let i = 0; i < target; i++) {
                 particles.push(make(randomPageY()));
@@ -363,9 +365,9 @@
        LAYER CONFIGS — edit density / sizes / parallax here
        ============================================================ */
 
-    // NEAR — foreground, fast drift, big swirl radius
+    // NEAR — foreground (maxParticles ≈ count per screen; scaled to full page height in spawn)
     const NEAR_CONFIG = {
-        density: 0.00042,
+        density: 0.00050,
         maxParticles: 360,
         minSpeed: 0.30,
         maxSpeed: 1.05,
@@ -384,9 +386,9 @@
         mouseForce: 0.45,                               // strong transfer inside the ball
     };
 
-    // BACK — distant, slower, gentler swirl
+    // BACK — background (2× near; scaled to full page height in spawn)
     const BACK_CONFIG = {
-        density: 0.00084,
+        density: 0.00100,
         maxParticles: 720,
         minSpeed: 0.15,
         maxSpeed: 0.45,
