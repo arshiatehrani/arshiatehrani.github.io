@@ -1586,7 +1586,6 @@ body::before {
 .projects-grid .card-reveal,
 .publications-list .card-reveal,
 .gallery-grid .card-reveal,
-.contact-grid .contact-card,
 .timeline .timeline-item {
     transition-delay: calc(var(--stagger, 0) * 0.025s);
 }

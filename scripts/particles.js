@@ -390,7 +390,7 @@
 
     // BACK — background (8× foreground per screen, site-wide distribution)
     const BACK_CONFIG = {
-        maxParticles: 720,
+        maxParticles: 360,
         baseOpacityMin: 0.42,
         baseOpacityRange: 0.38,
         minSpeed: 0.24,
