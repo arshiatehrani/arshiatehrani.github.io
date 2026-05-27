@@ -67,6 +67,7 @@
     --transition-theme: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
     --container-max: 1200px;
     --section-padding: 8rem 0;
+    --nav-anchor-offset: 5.5rem;    /* fixed navbar + gap for # anchor jumps */
 }
 
 /* ============================================================
@@ -125,7 +126,7 @@
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: 0;          /* sections handle their own anchor offset via scroll-margin-top */
+    scroll-padding-top: var(--nav-anchor-offset);
     overflow-x: hidden;
 }
 
@@ -379,6 +380,7 @@ body::before {
     padding: 0 2rem;
     position: relative;
     overflow: visible;              /* don't clip buttons while they fade on fast scroll */
+    scroll-margin-top: var(--nav-anchor-offset);
 }
 
 .hero::before {
@@ -557,10 +559,7 @@ body::before {
 .section {
     padding: var(--section-padding);
     position: relative;
-    /* When the browser scrolls to a #section anchor, pretend the section
-       starts 40px above its real top edge so the heading lands just under
-       the navbar (with breathing room). Matches the Lenis offset. */
-    scroll-margin-top: -40px;
+    scroll-margin-top: var(--nav-anchor-offset);
 }
 
 .container {
@@ -1602,6 +1601,7 @@ body::before {
 @media (max-width: 768px) {
     :root {
         --section-padding: 5rem 0;
+        --nav-anchor-offset: 5.25rem;
         --mobile-nav-offset: 5.25rem;   /* fixed navbar height — drawer starts below it */
     }
 

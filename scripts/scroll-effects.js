@@ -134,17 +134,38 @@
         window.__lenis = null;
     }
 
+    function anchorScrollOffset() {
+        const navbar = document.querySelector('.navbar');
+        const navH = navbar ? navbar.getBoundingClientRect().height : 72;
+        return navH + 16; /* fixed nav + breathing room below it */
+    }
+
+    /* Scroll to the heading, not the section box (skips large section top padding) */
+    function resolveAnchorTarget(hash) {
+        const section = document.querySelector(hash);
+        if (!section) return null;
+        if (section.id === 'hero') {
+            return section.querySelector('.hero-motion') || section;
+        }
+        return (
+            section.querySelector('.section-header')
+            || section.querySelector('.section-motion')
+            || section
+        );
+    }
+
     document.querySelectorAll('a[href^="#"]').forEach((link) => {
         link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
             if (href.length <= 1) return;
-            const target = document.querySelector(href);
+            const target = resolveAnchorTarget(href);
             if (!target) return;
             e.preventDefault();
+            const offset = anchorScrollOffset();
             if (window.__lenis) {
-                window.__lenis.scrollTo(target, { offset: 40 });
+                window.__lenis.scrollTo(target, { offset });
             } else {
-                const y = target.getBoundingClientRect().top + window.scrollY - 40;
+                const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
                 window.scrollTo({ top: y, behavior: 'smooth' });
             }
         });
