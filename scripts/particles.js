@@ -188,12 +188,28 @@
                 p.vy = (p.vy / s) * maxV;
             }
 
-            // Toroidal wrap — particles stay inside the viewport so edge
-            // connections don't blink when off-screen margin particles teleport.
-            if (p.x < 0) p.x += width;
-            else if (p.x >= width) p.x -= width;
-            if (p.y < 0) p.y += height;
-            else if (p.y >= height) p.y -= height;
+            // Scatter wrap — re-enter on opposite edge (avoids horizontal-line artifact on fast scroll)
+            if (p.x < -30) {
+                p.x = width + 30;
+                p.y = Math.random() * height;
+            } else if (p.x > width + 30) {
+                p.x = -30;
+                p.y = Math.random() * height;
+            }
+            if (p.y < -30) {
+                p.y = height + 30 + Math.random() * 120;
+                p.x = Math.random() * width;
+            } else if (p.y > height + 30) {
+                p.y = -30 - Math.random() * 120;
+                p.x = Math.random() * width;
+            }
+        }
+
+        /* Only particles inside the viewport get connection lines.
+           Parallax pushes dots slightly past edges before wrap; linking them
+           to on-screen neighbors caused the border line blinking. */
+        function inView(p) {
+            return p.x >= 0 && p.x <= width && p.y >= 0 && p.y <= height;
         }
 
         /* ---------- SPATIAL HASH CONNECTION CHECK ----------
@@ -208,12 +224,12 @@
             // 1) clear grid buckets
             for (let i = 0; i < grid.length; i++) grid[i].length = 0;
 
-            // 2) bucket particles into cells (only in-bounds — toroidal wrap keeps all inside)
+            // 2) bucket only on-screen particles (skip parallax margin ghosts)
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
-                if (p.x < 0 || p.x >= width || p.y < 0 || p.y >= height) continue;
-                const cx = Math.min(cols - 1, Math.max(0, (p.x / cellSize) | 0));
-                const cy = Math.min(rows - 1, Math.max(0, (p.y / cellSize) | 0));
+                if (!inView(p)) continue;
+                const cx = Math.max(0, Math.min(cols - 1, ((p.x / cellSize) | 0) + 1));
+                const cy = Math.max(0, Math.min(rows - 1, ((p.y / cellSize) | 0) + 1));
                 grid[cy * cols + cx].push(i);
             }
 
@@ -245,6 +261,7 @@
                                     if (j <= i && !(dx !== 0 || dy !== 0)) continue;  // same cell + same index
                                     if (dx === 0 && dy === 0 && j <= i) continue;
                                     const b = particles[j];
+                                    if (!inView(b)) continue;
                                     const bdx = a.x - b.x;
                                     const bdy = a.y - b.y;
                                     const distSq = bdx * bdx + bdy * bdy;
@@ -273,6 +290,7 @@
         }
 
         function drawParticle(p) {
+            if (!inView(p)) return;
             // Twinkle: opacity oscillates softly
             const twinkleAmp = p.accent ? 0.22 : 0.14;
             const opacity = Math.max(0, Math.min(1,
