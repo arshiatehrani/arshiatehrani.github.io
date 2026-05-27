@@ -147,12 +147,16 @@
             };
         }
 
-        function update(p, mouse, scrollDelta, mouseVx, mouseVy) {
+        /* Scroll parallax is render-only (see render()) — never mutates p.y.
+           Applying parallax to physics Y pushed margin particles through wrap/grid
+           at top/bottom; X edges had no scroll coupling, so left/right stayed smooth. */
+        function parallaxOffset() {
+            return -window.scrollY * (config.parallaxFactor || 0);
+        }
+
+        function update(p, mouse, parallaxY, mouseVx, mouseVy) {
             p.x += p.vx;
             p.y += p.vy;
-            // parallax: shift with scroll (capped per frame so margin particles don't jitter)
-            const parallaxStep = Math.max(-50, Math.min(50, scrollDelta)) * (config.parallaxFactor || 0);
-            p.y -= parallaxStep;
             p.twinkle += p.twinkleSpeed;
 
             // Cursor interaction — small "physical ball" pushing particles aside.
@@ -166,7 +170,7 @@
             // pushed, just like water in front of a moving hand.
             if (config.reactsToMouse && mouse.active && (mouseVx !== 0 || mouseVy !== 0)) {
                 const dx = p.x - mouse.x;
-                const dy = p.y - mouse.y;
+                const dy = (p.y + parallaxY) - mouse.y;
                 const distSq = dx * dx + dy * dy;
                 const infl = config.mouseInfluence;
                 if (distSq < infl * infl) {
@@ -234,7 +238,7 @@
         /* ---------- SPATIAL HASH CONNECTION CHECK ----------
            Only check particle pairs in the same or neighboring grid cell.
            For 600+ particles this is ~50-100x faster than the naive O(n²). */
-        function drawConnections(mouse) {
+        function drawConnections(parallaxY) {
             if (!config.drawConnections) return;
             const maxDist = config.connectionDistance;
             const maxDistSq = maxDist * maxDist;
@@ -287,8 +291,8 @@
                                         if (lineAlpha < 0.04) continue;
                                         const useAccent = (a.accent || b.accent);
                                         ctx.beginPath();
-                                        ctx.moveTo(a.x, a.y);
-                                        ctx.lineTo(b.x, b.y);
+                                        ctx.moveTo(a.x, a.y + parallaxY);
+                                        ctx.lineTo(b.x, b.y + parallaxY);
                                         ctx.strokeStyle = (useAccent ? config.colors.accentLineColor : config.colors.lineColor)
                                             + lineAlpha + ')';
                                         ctx.lineWidth = useAccent ? config.lineWidth * 1.3 : config.lineWidth;
@@ -302,7 +306,8 @@
             }
         }
 
-        function drawParticle(p) {
+        function drawParticle(p, parallaxY) {
+            const sy = p.y + parallaxY;
             // Twinkle: opacity oscillates softly
             const twinkleAmp = p.accent ? 0.22 : 0.14;
             const opacity = Math.max(0, Math.min(1,
@@ -311,29 +316,30 @@
 
             // Core dot
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.arc(p.x, sy, p.r, 0, Math.PI * 2);
             ctx.fillStyle = (p.accent ? config.colors.accentColor : config.colors.particleColor) + opacity + ')';
             ctx.fill();
 
             // Soft halo on accent ("hub") particles — dimmer than before
             if (p.accent && config.drawGlow) {
                 const glowR = p.r * 4.2;
-                const grad = ctx.createRadialGradient(p.x, p.y, p.r * 0.5, p.x, p.y, glowR);
+                const grad = ctx.createRadialGradient(p.x, sy, p.r * 0.5, p.x, sy, glowR);
                 grad.addColorStop(0, config.colors.glowColor + (opacity * 0.28) + ')');
                 grad.addColorStop(0.5, config.colors.glowColor + (opacity * 0.06) + ')');
                 grad.addColorStop(1, config.colors.glowColor + '0)');
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+                ctx.arc(p.x, sy, glowR, 0, Math.PI * 2);
                 ctx.fillStyle = grad;
                 ctx.fill();
             }
         }
 
-        function render(mouse, scrollDelta, mouseVx, mouseVy) {
+        function render(mouse, mouseVx, mouseVy) {
+            const parallaxY = parallaxOffset();
             ctx.clearRect(0, 0, width, height);
-            for (const p of particles) update(p, mouse, scrollDelta, mouseVx, mouseVy);
-            drawConnections(mouse);
-            for (const p of particles) drawParticle(p);
+            for (const p of particles) update(p, mouse, parallaxY, mouseVx, mouseVy);
+            drawConnections(parallaxY);
+            for (const p of particles) drawParticle(p, parallaxY);
         }
 
         return { resize, render };
@@ -412,15 +418,6 @@
     }, { passive: true });
     window.addEventListener('touchend', () => { mouse.active = false; });
 
-    /* Scroll tracking for parallax */
-    let lastScrollY = window.scrollY;
-    let pendingScrollDelta = 0;
-    window.addEventListener('scroll', () => {
-        const cur = window.scrollY;
-        pendingScrollDelta += (cur - lastScrollY);
-        lastScrollY = cur;
-    }, { passive: true });
-
     /* Animation loop — also tracks cursor velocity per frame. When the cursor
        is still, mouseVx/mouseVy decay to 0 within a frame and particles drift
        freely through the influence circle. */
@@ -428,13 +425,11 @@
     let prevMouseX = mouse.x;
     let prevMouseY = mouse.y;
     function animate() {
-        const delta = pendingScrollDelta;
-        pendingScrollDelta = 0;
         const mvx = mouse.x - prevMouseX;
         const mvy = mouse.y - prevMouseY;
         prevMouseX = mouse.x;
         prevMouseY = mouse.y;
-        for (const layer of layers) layer.render(mouse, delta, mvx, mvy);
+        for (const layer of layers) layer.render(mouse, mvx, mvy);
         animationId = requestAnimationFrame(animate);
     }
 
