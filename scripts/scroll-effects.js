@@ -12,7 +12,7 @@
 
     /* Hero zoom while scrolling — edit these values */
     const HERO_EXIT = {
-        scaleDesktop: 3,           /* max scale on wide screens (3 = 3× size) */
+        scaleDesktop: 2,           /* max scale on wide screens (2 = 2× size) */
         scaleMobile: 2,            /* max scale on phones (2 = 2× size) */
         mobileBreakpointPx: 768,   /* match main.css @media (max-width: 768px) */
     };
