@@ -97,7 +97,7 @@
 
         // HERO CINEMATIC EXIT — drift down, scale up while fading (text only)
         if (heroContent) {
-            const heroScaleMax = 0.5;    /* 1 → 1.5 across first viewport of scroll */
+            const heroScaleMax = 1;      /* 1 → 2 across first viewport of scroll */
             if (scrollTop < vh * 1.2) {
                 const t = Math.min(scrollTop / vh, 1);
                 const translateY = scrollTop * 0.35;
