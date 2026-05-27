@@ -149,13 +149,67 @@
             
             if (particles.length === 0) {
                 // First spawn: build the full target
-                for (let i = 0; i < target; i++) {
+                while (particles.length < target) {
+                    const remaining = target - particles.length;
+                    // Spawn a regular geometric shape cluster (pentagon or hexagon) with ~12% probability
+                    if (remaining >= 5 && Math.random() < 0.12) {
+                        const N = Math.random() < 0.5 ? 5 : 6;
+                        if (particles.length + N <= target) {
+                            const spawnY = randomPageY();
+                            const centerX = Math.random() * width;
+                            const isAccent = Math.random() < config.accentRatio;
+                            const radius = N === 5 
+                                ? (config.connectionDistance * 0.35 + Math.random() * config.connectionDistance * 0.1)
+                                : (config.connectionDistance * 0.45 + Math.random() * config.connectionDistance * 0.1);
+                            
+                            const angle = Math.random() * Math.PI * 2;
+                            const t1 = Math.random();
+                            const t2 = Math.random();
+                            const span = config.maxSpeed - config.minSpeed;
+                            const speed = config.minSpeed + (t1 + t2) * 0.5 * span;
+                            const wobble = 0.7 + Math.random() * 0.6;
+                            const vx = Math.cos(angle) * speed * wobble;
+                            const vy = Math.sin(angle) * speed * wobble;
+
+                            const cluster = makeCluster(centerX, spawnY, speed * wobble, vx, vy, N, radius, isAccent);
+                            for (let c = 0; c < cluster.length; c++) {
+                                particles.push(cluster[c]);
+                            }
+                            continue;
+                        }
+                    }
                     particles.push(make(randomPageY()));
                 }
             } else if (particles.length < target) {
                 // Viewport grew: add new particles without resetting existing active ones!
-                const diff = target - particles.length;
-                for (let i = 0; i < diff; i++) {
+                while (particles.length < target) {
+                    const remaining = target - particles.length;
+                    if (remaining >= 5 && Math.random() < 0.12) {
+                        const N = Math.random() < 0.5 ? 5 : 6;
+                        if (particles.length + N <= target) {
+                            const spawnY = randomPageY();
+                            const centerX = Math.random() * width;
+                            const isAccent = Math.random() < config.accentRatio;
+                            const radius = N === 5 
+                                ? (config.connectionDistance * 0.35 + Math.random() * config.connectionDistance * 0.1)
+                                : (config.connectionDistance * 0.45 + Math.random() * config.connectionDistance * 0.1);
+
+                            const angle = Math.random() * Math.PI * 2;
+                            const t1 = Math.random();
+                            const t2 = Math.random();
+                            const span = config.maxSpeed - config.minSpeed;
+                            const speed = config.minSpeed + (t1 + t2) * 0.5 * span;
+                            const wobble = 0.7 + Math.random() * 0.6;
+                            const vx = Math.cos(angle) * speed * wobble;
+                            const vy = Math.sin(angle) * speed * wobble;
+
+                            const cluster = makeCluster(centerX, spawnY, speed * wobble, vx, vy, N, radius, isAccent);
+                            for (let c = 0; c < cluster.length; c++) {
+                                particles.push(cluster[c]);
+                            }
+                            continue;
+                        }
+                    }
                     particles.push(make(randomPageY()));
                 }
             } else if (particles.length > target) {
@@ -194,13 +248,73 @@
             };
         }
 
+        function makeCluster(centerX, centerY, speed, vx, vy, N, radius, isAccent) {
+            const clusterParticles = [];
+            const angleOffsetStart = Math.random() * Math.PI * 2;
+            const rotationAngle = Math.random() * Math.PI * 2;
+            const rotationSpeed = (0.0006 + Math.random() * 0.0012) * (Math.random() < 0.5 ? 1 : -1);
+
+            const clusterState = {
+                centerX: centerX,
+                centerY: centerY,
+                rotationAngle: rotationAngle,
+                rotationSpeed: rotationSpeed,
+                lastUpdatedFrame: -1,
+                lastWrappedFrame: -1
+            };
+
+            for (let i = 0; i < N; i++) {
+                const angleOffset = angleOffsetStart + (i * Math.PI * 2) / N;
+                
+                // Position each particle on the ring
+                const px = centerX + Math.cos(angleOffset + rotationAngle) * radius;
+                const py = centerY + Math.sin(angleOffset + rotationAngle) * radius;
+
+                clusterParticles.push({
+                    x: px,
+                    y: py,
+                    vx: vx,
+                    vy: vy,
+                    baseVx: vx,
+                    baseVy: vy,
+                    speed: speed,
+                    r: isAccent
+                        ? config.minRadius + Math.random() * (config.maxRadius - config.minRadius) * 1.5
+                        : config.minRadius + Math.random() * (config.maxRadius - config.minRadius),
+                    accent: isAccent,
+                    twinkle: Math.random() * Math.PI * 2,
+                    twinkleSpeed: 0.015 + Math.random() * 0.030,
+                    baseOpacity: (config.baseOpacityMin || 0.30)
+                        + Math.random() * (config.baseOpacityRange || 0.30),
+                    cluster: {
+                        state: clusterState,
+                        angleOffset: angleOffset,
+                        radius: radius
+                    }
+                });
+            }
+            return clusterParticles;
+        }
+
         function parallaxOffset(scrollYVal) {
             return -scrollYVal * (1 - (config.parallaxFactor || 0));
         }
 
         function update(p, mouse, parallaxY, mouseVx, mouseVy, dt) {
-            p.x += p.vx * dt;
-            p.y += p.vy * dt;
+            if (p.cluster) {
+                const state = p.cluster.state;
+                if (state.lastUpdatedFrame !== window.particlesFrameCount) {
+                    state.lastUpdatedFrame = window.particlesFrameCount;
+                    state.centerX += p.vx * dt;
+                    state.centerY += p.vy * dt;
+                    state.rotationAngle += state.rotationSpeed * dt;
+                }
+                p.x = state.centerX + Math.cos(p.cluster.angleOffset + state.rotationAngle) * p.cluster.radius;
+                p.y = state.centerY + Math.sin(p.cluster.angleOffset + state.rotationAngle) * p.cluster.radius;
+            } else {
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+            }
             p.twinkle += p.twinkleSpeed * dt;
 
             // 1. Organic Fluid Steering Field (sinusoidal underwater harmonic currents)
@@ -265,18 +379,54 @@
             // randomized Y band) — this breaks up the "horizontal line of new
             // particles" artifact that appeared on fast scrolls.
             if (p.x < -MARGIN_X) {
-                p.x = width + MARGIN_X;
-                p.y = randomPageY();
+                if (p.cluster) {
+                    const state = p.cluster.state;
+                    if (state.lastWrappedFrame !== window.particlesFrameCount) {
+                        state.lastWrappedFrame = window.particlesFrameCount;
+                        state.centerX = width + MARGIN_X;
+                        state.centerY = randomPageY();
+                    }
+                } else {
+                    p.x = width + MARGIN_X;
+                    p.y = randomPageY();
+                }
             } else if (p.x > width + MARGIN_X) {
-                p.x = -MARGIN_X;
-                p.y = randomPageY();
+                if (p.cluster) {
+                    const state = p.cluster.state;
+                    if (state.lastWrappedFrame !== window.particlesFrameCount) {
+                        state.lastWrappedFrame = window.particlesFrameCount;
+                        state.centerX = -MARGIN_X;
+                        state.centerY = randomPageY();
+                    }
+                } else {
+                    p.x = -MARGIN_X;
+                    p.y = randomPageY();
+                }
             }
             if (p.y < worldMinY) {
-                p.y = randomPageY();
-                p.x = Math.random() * width;
+                if (p.cluster) {
+                    const state = p.cluster.state;
+                    if (state.lastWrappedFrame !== window.particlesFrameCount) {
+                        state.lastWrappedFrame = window.particlesFrameCount;
+                        state.centerY = randomPageY();
+                        state.centerX = Math.random() * width;
+                    }
+                } else {
+                    p.y = randomPageY();
+                    p.x = Math.random() * width;
+                }
             } else if (p.y > worldMaxY) {
-                p.y = randomPageY();
-                p.x = Math.random() * width;
+                if (p.cluster) {
+                    const state = p.cluster.state;
+                    if (state.lastWrappedFrame !== window.particlesFrameCount) {
+                        state.lastWrappedFrame = window.particlesFrameCount;
+                        state.centerY = randomPageY();
+                        state.centerX = Math.random() * width;
+                    }
+                } else {
+                    p.y = randomPageY();
+                    p.x = Math.random() * width;
+                }
             }
         }
 
@@ -501,6 +651,7 @@
     let currentScrollY = window.scrollY;
 
     function animate(currentTime) {
+        window.particlesFrameCount = (window.particlesFrameCount || 0) + 1;
         if (!currentTime) currentTime = performance.now();
         const rawDt = currentTime - lastTime;
         lastTime = currentTime;
