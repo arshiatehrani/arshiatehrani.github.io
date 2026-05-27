@@ -92,9 +92,30 @@
             return Math.random() * pageHeight;
         }
 
+        let lastWidth = 0;
         function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
+            const newWidth = window.innerWidth;
+            const newHeight = window.innerHeight;
+
+            // On mobile, ignore height-only resizing (dynamic browser address bar changes)
+            if (newWidth === lastWidth && newWidth <= 768) {
+                // Just update canvas height boundaries so rendering fills the screen,
+                // but do NOT clear the particles array or trigger spawn()!
+                width = newWidth;
+                height = newHeight;
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.scale(dpr, dpr);
+                computeWorldBounds();
+                return;
+            }
+
+            lastWidth = newWidth;
+            width = newWidth;
+            height = newHeight;
             canvas.width = width * dpr;
             canvas.height = height * dpr;
             canvas.style.width = width + 'px';
@@ -429,6 +450,7 @@
     });
     window.addEventListener('mouseleave', () => { mouse.active = false; });
     window.addEventListener('touchmove', (e) => {
+        if (window.innerWidth <= 768) return; // ignore touch interaction on mobile to prevent messy drag-to-scroll scattering
         if (e.touches.length > 0) {
             mouse.x = e.touches[0].clientX;
             mouse.y = e.touches[0].clientY;
