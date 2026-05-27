@@ -309,7 +309,7 @@
 
                         for (let dy = -1; dy <= 1; dy++) {
                             for (let dx = -1; dx <= 1; dx++) {
-                                if (dy < 0 || (dy === 0 && dx <= 0)) continue;
+                                if (dy < 0 || (dy === 0 && dx < 0)) continue;
                                 const ncx = cx + dx;
                                 const ncy = cy + dy;
                                 if (ncx < 0 || ncx >= viewCols || ncy < 0 || ncy >= viewRows) continue;
