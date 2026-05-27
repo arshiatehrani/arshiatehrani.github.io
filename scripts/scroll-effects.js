@@ -10,6 +10,19 @@
 (function () {
     'use strict';
 
+    /* Hero zoom while scrolling — edit these values */
+    const HERO_EXIT = {
+        scaleDesktop: 3,           /* max scale on wide screens (3 = 3× size) */
+        scaleMobile: 2,            /* max scale on phones (2 = 2× size) */
+        mobileBreakpointPx: 768,   /* match main.css @media (max-width: 768px) */
+    };
+
+    function heroScaleEnd() {
+        return window.innerWidth <= HERO_EXIT.mobileBreakpointPx
+            ? HERO_EXIT.scaleMobile
+            : HERO_EXIT.scaleDesktop;
+    }
+
     /* ---------- 1. STAGGERED CHILD REVEALS ---------- */
     document.querySelectorAll(
         '.tools-grid, .projects-grid, .publications-list, .contact-grid, .gallery-grid, .timeline'
@@ -97,17 +110,18 @@
 
         // HERO CINEMATIC EXIT — drift down, scale up while fading (text only)
         if (heroContent) {
-            const heroScaleMax = 2;      /* 1 → 3 across first viewport of scroll */
+            const scaleEnd = heroScaleEnd();
+            const scaleDelta = scaleEnd - 1;
             if (scrollTop < vh * 1.2) {
                 const t = Math.min(scrollTop / vh, 1);
                 const translateY = scrollTop * 0.35;
-                const scale = 1 + t * heroScaleMax;
+                const scale = 1 + t * scaleDelta;
                 const opacity = Math.max(0, 1 - t * 1.2);
                 heroContent.style.transform = `translateY(${translateY}px) scale(${scale})`;
                 heroContent.style.opacity = String(opacity);
             } else {
                 heroContent.style.opacity = '0';
-                heroContent.style.transform = `translateY(${vh * 0.42}px) scale(${1 + heroScaleMax})`;
+                heroContent.style.transform = `translateY(${vh * 0.42}px) scale(${scaleEnd})`;
             }
         }
 
