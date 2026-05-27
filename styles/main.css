@@ -256,6 +256,20 @@ body::before {
     letter-spacing: 0;
     line-height: 1.15;
     max-width: 58%;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.nav-logo-icon {
+    display: inline-block;
+    width: clamp(1.15rem, 3.2vw, 1.7rem);
+    height: clamp(1.15rem, 3.2vw, 1.7rem);
+    flex-shrink: 0;
+    background: var(--accent-gradient);
+    -webkit-mask: url('../assets/logo.png?v=2') no-repeat center / contain;
+    mask: url('../assets/logo.png?v=2') no-repeat center / contain;
+    -webkit-text-fill-color: initial;
 }
 
 .nav-links {
