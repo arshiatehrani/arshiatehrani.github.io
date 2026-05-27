@@ -68,6 +68,12 @@
         // Pre-allocated spatial grid (rebuilt each frame, but arrays reused)
         let grid = [];
         let cols = 0, rows = 0;
+        let worldMinX = 0, worldMaxX = 0, worldMinY = 0, worldMaxY = 0;
+
+        /* Must match scatter wrap margins in update() */
+        const MARGIN_X = 30;
+        const MARGIN_Y_TOP = 30;
+        const MARGIN_Y_BOTTOM = 150;
 
         function resize() {
             width = window.innerWidth;
@@ -84,10 +90,24 @@
 
         function buildGridSkeleton() {
             const cellSize = config.connectionDistance || 100;
-            cols = Math.ceil(width / cellSize) + 2;
-            rows = Math.ceil(height / cellSize) + 2;
+            worldMinX = -MARGIN_X;
+            worldMaxX = width + MARGIN_X;
+            worldMinY = -MARGIN_Y_TOP - MARGIN_Y_BOTTOM;
+            worldMaxY = height + MARGIN_Y_TOP + MARGIN_Y_BOTTOM;
+            cols = Math.ceil((worldMaxX - worldMinX) / cellSize) + 1;
+            rows = Math.ceil((worldMaxY - worldMinY) / cellSize) + 1;
             grid = new Array(cols * rows);
             for (let i = 0; i < grid.length; i++) grid[i] = [];
+        }
+
+        function particleCell(p) {
+            const cellSize = config.connectionDistance || 100;
+            const cx = ((p.x - worldMinX) / cellSize) | 0;
+            const cy = ((p.y - worldMinY) / cellSize) | 0;
+            return {
+                cx: Math.max(0, Math.min(cols - 1, cx)),
+                cy: Math.max(0, Math.min(rows - 1, cy)),
+            };
         }
 
         function spawn() {
@@ -125,8 +145,9 @@
         function update(p, mouse, scrollDelta, mouseVx, mouseVy) {
             p.x += p.vx;
             p.y += p.vy;
-            // parallax: shift particles opposite to scroll, scaled by factor
-            p.y -= scrollDelta * (config.parallaxFactor || 0);
+            // parallax: shift with scroll (capped per frame so margin particles don't jitter)
+            const parallaxStep = Math.max(-50, Math.min(50, scrollDelta)) * (config.parallaxFactor || 0);
+            p.y -= parallaxStep;
             p.twinkle += p.twinkleSpeed;
 
             // Cursor interaction — small "physical ball" pushing particles aside.
@@ -189,27 +210,20 @@
             }
 
             // Scatter wrap — re-enter on opposite edge (avoids horizontal-line artifact on fast scroll)
-            if (p.x < -30) {
-                p.x = width + 30;
+            if (p.x < -MARGIN_X) {
+                p.x = width + MARGIN_X;
                 p.y = Math.random() * height;
-            } else if (p.x > width + 30) {
-                p.x = -30;
+            } else if (p.x > width + MARGIN_X) {
+                p.x = -MARGIN_X;
                 p.y = Math.random() * height;
             }
-            if (p.y < -30) {
-                p.y = height + 30 + Math.random() * 120;
+            if (p.y < -MARGIN_Y_TOP) {
+                p.y = height + MARGIN_Y_TOP + Math.random() * MARGIN_Y_BOTTOM;
                 p.x = Math.random() * width;
-            } else if (p.y > height + 30) {
-                p.y = -30 - Math.random() * 120;
+            } else if (p.y > height + MARGIN_Y_TOP) {
+                p.y = -MARGIN_Y_TOP - Math.random() * MARGIN_Y_BOTTOM;
                 p.x = Math.random() * width;
             }
-        }
-
-        /* Only particles inside the viewport get connection lines.
-           Parallax pushes dots slightly past edges before wrap; linking them
-           to on-screen neighbors caused the border line blinking. */
-        function inView(p) {
-            return p.x >= 0 && p.x <= width && p.y >= 0 && p.y <= height;
         }
 
         /* ---------- SPATIAL HASH CONNECTION CHECK ----------
@@ -224,13 +238,10 @@
             // 1) clear grid buckets
             for (let i = 0; i < grid.length; i++) grid[i].length = 0;
 
-            // 2) bucket only on-screen particles (skip parallax margin ghosts)
+            // 2) bucket ALL particles (on-screen + margin) by real position — no edge clamp pile-up
             for (let i = 0; i < particles.length; i++) {
-                const p = particles[i];
-                if (!inView(p)) continue;
-                const cx = Math.max(0, Math.min(cols - 1, ((p.x / cellSize) | 0) + 1));
-                const cy = Math.max(0, Math.min(rows - 1, ((p.y / cellSize) | 0) + 1));
-                grid[cy * cols + cx].push(i);
+                const cell = particleCell(particles[i]);
+                grid[cell.cy * cols + cell.cx].push(i);
             }
 
             // (Cursor-to-particle "spider-web" lines intentionally removed — the
@@ -261,7 +272,6 @@
                                     if (j <= i && !(dx !== 0 || dy !== 0)) continue;  // same cell + same index
                                     if (dx === 0 && dy === 0 && j <= i) continue;
                                     const b = particles[j];
-                                    if (!inView(b)) continue;
                                     const bdx = a.x - b.x;
                                     const bdy = a.y - b.y;
                                     const distSq = bdx * bdx + bdy * bdy;
@@ -290,7 +300,6 @@
         }
 
         function drawParticle(p) {
-            if (!inView(p)) return;
             // Twinkle: opacity oscillates softly
             const twinkleAmp = p.accent ? 0.22 : 0.14;
             const opacity = Math.max(0, Math.min(1,
