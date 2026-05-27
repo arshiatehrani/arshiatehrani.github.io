@@ -21,7 +21,7 @@
             }
         })();
     </script>
-    <link rel="stylesheet" href="styles/main.css?v=34" />
+    <link rel="stylesheet" href="styles/main.css?v=35" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://js.arcgis.com" />
@@ -36,7 +36,9 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.min.css" />
     </noscript>
 
-    <!-- ArcGIS loads on demand when you scroll near the World section (see lazy-map.js) -->
+    <!-- ArcGIS API (embedded world map — loads with the page) -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" />
+    <script src="https://js.arcgis.com/4.29/"></script>
 </head>
 <body>
     <!-- Two layered particle canvases — back (distant) + near (foreground) -->
@@ -610,18 +612,33 @@
         </div>
     </footer>
 
-    <!-- Lenis smooth scroll (cinematic feel) -->
-    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.1.13/bundled/lenis.min.js" defer></script>
-
-    <!-- World map data + renderer (ArcGIS SDK loads only near World section — invisible until then) -->
-    <script src="scripts/world-data.js?v=27" defer></script>
-    <script src="scripts/world-map.js?v=11" defer></script>
-    <script src="scripts/lazy-map.js?v=1" defer></script>
+    <!-- World map data + renderer -->
+    <script src="scripts/world-data.js?v=27"></script>
+    <script src="scripts/world-map.js?v=11"></script>
 
     <!-- App scripts (theme.js must run first so particles read the right colors) -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.1.13/bundled/lenis.min.js" defer></script>
     <script src="scripts/theme.js?v=11" defer></script>
     <script src="scripts/particles.js?v=23" defer></script>
     <script src="scripts/scroll-effects.js?v=33" defer></script>
     <script src="scripts/main.js?v=27" defer></script>
+
+    <script>
+        (function () {
+            function tryInit() {
+                if (typeof require === 'undefined' || typeof window.initWorldMap !== 'function') {
+                    setTimeout(tryInit, 100);
+                    return;
+                }
+                window.initWorldMap('world-map-embed', {
+                    initialZoom: 2,
+                    center: [15, 25],
+                    showScaleBar: false,
+                    disableScrollZoom: true,
+                });
+            }
+            tryInit();
+        })();
+    </script>
 </body>
 </html>
