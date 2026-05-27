@@ -66,24 +66,30 @@
         const dpr = Math.min(window.devicePixelRatio || 1, 1.75);   // tiny perf gain on retina
 
         let worldMinX = 0, worldMaxX = 0, worldMinY = 0, worldMaxY = 0;
+        let pageHeight = 0;
 
         const MARGIN_X = 30;
         const WRAP_Y_NEAR = 30;
-        const MARGIN_Y_BELOW = 150;
-        const MARGIN_Y_ABOVE = 150;
+        const MARGIN_Y_DOC = 80;
 
-        function parallaxScrollReserve() {
-            const factor = config.parallaxFactor || 0;
-            if (!factor || !height) return MARGIN_Y_BELOW;
-            const pageScroll = Math.max(0, (document.documentElement.scrollHeight || height) - height);
-            return Math.min(height * 2, pageScroll * factor + MARGIN_Y_BELOW);
+        function documentHeight() {
+            return Math.max(
+                height,
+                document.documentElement.scrollHeight || 0,
+                document.body ? document.body.scrollHeight : 0
+            );
         }
 
         function computeWorldBounds() {
+            pageHeight = documentHeight();
             worldMinX = -MARGIN_X;
             worldMaxX = width + MARGIN_X;
-            worldMinY = -WRAP_Y_NEAR - MARGIN_Y_ABOVE;
-            worldMaxY = height + WRAP_Y_NEAR + parallaxScrollReserve();
+            worldMinY = -WRAP_Y_NEAR;
+            worldMaxY = pageHeight + WRAP_Y_NEAR + MARGIN_Y_DOC;
+        }
+
+        function randomPageY() {
+            return Math.random() * pageHeight;
         }
 
         function resize() {
@@ -120,20 +126,9 @@
                 config.maxParticles,
                 Math.floor(width * height * config.density)
             ));
-            const py = parallaxOffset();
-            const visLo = Math.max(0, -py);
-            const visHi = Math.min(worldMaxY, Math.max(visLo + 1, height - py));
-            const visibleSpan = visHi - visLo;
-            const reserveSpan = Math.max(1, worldMaxY - height);
-            const visibleCount = Math.round(target * visibleSpan / (visibleSpan + reserveSpan));
-            const reserveCount = target - visibleCount;
-
             particles = [];
-            for (let i = 0; i < visibleCount; i++) {
-                particles.push(make(visLo + Math.random() * visibleSpan));
-            }
-            for (let i = 0; i < reserveCount; i++) {
-                particles.push(make(height + Math.random() * reserveSpan));
+            for (let i = 0; i < target; i++) {
+                particles.push(make(randomPageY()));
             }
         }
 
@@ -160,7 +155,7 @@
             };
         }
 
-        /* Parallax is render-only — scroll must not mutate p.y (causes top/bottom line blink). */
+        /* p.y is document-space; parallax is render-only (screen y = p.y + parallaxOffset). */
         function parallaxOffset() {
             return -window.scrollY * (config.parallaxFactor || 0);
         }
@@ -235,17 +230,16 @@
             // particles" artifact that appeared on fast scrolls.
             if (p.x < -MARGIN_X) {
                 p.x = width + MARGIN_X;
-                p.y = Math.random() * height;
+                p.y = randomPageY();
             } else if (p.x > width + MARGIN_X) {
                 p.x = -MARGIN_X;
-                p.y = Math.random() * height;
+                p.y = randomPageY();
             }
             if (p.y < worldMinY) {
-                const band = Math.max(1, worldMaxY - height - WRAP_Y_NEAR);
-                p.y = height + WRAP_Y_NEAR + Math.random() * band;
+                p.y = randomPageY();
                 p.x = Math.random() * width;
             } else if (p.y > worldMaxY) {
-                p.y = Math.random() * height;
+                p.y = randomPageY();
                 p.x = Math.random() * width;
             }
         }
@@ -456,6 +450,19 @@
     window.addEventListener('resize', () => {
         for (const layer of layers) layer.resize();
     });
+
+    /* Re-spawn when page length settles (images, fonts, lazy content) */
+    let pageHeightTimer = null;
+    function schedulePageHeightSync() {
+        clearTimeout(pageHeightTimer);
+        pageHeightTimer = setTimeout(() => {
+            for (const layer of layers) layer.resize();
+        }, 400);
+    }
+    window.addEventListener('load', schedulePageHeightSync);
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(schedulePageHeightSync);
+    }
 
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
