@@ -68,12 +68,6 @@
         // Pre-allocated spatial grid (rebuilt each frame, but arrays reused)
         let grid = [];
         let cols = 0, rows = 0;
-        let worldMinX = 0, worldMaxX = 0, worldMinY = 0, worldMaxY = 0;
-
-        /* Must match scatter wrap margins in update() — symmetric above/below viewport */
-        const MARGIN_X = 30;
-        const WRAP_Y_NEAR = 30;          /* original near-edge scatter offset */
-        const MARGIN_Y_EXTENT = 150;     /* how far above/below screen particles live */
 
         function resize() {
             width = window.innerWidth;
@@ -88,60 +82,21 @@
             buildGridSkeleton();
         }
 
-        function gridCellSize() {
-            /* Finer buckets than connection distance — same link range, less edge pile-up */
-            return (config.connectionDistance || 100) * 0.5;
-        }
-
-        /* Extra band below the viewport so render-only parallax can pull particles in while scrolling */
-        function parallaxScrollReserve() {
-            const factor = config.parallaxFactor || 0;
-            if (!factor || !height) return 0;
-            const pageScroll = Math.max(0, (document.documentElement.scrollHeight || height) - height);
-            return Math.min(height * 2, pageScroll * factor + MARGIN_Y_EXTENT);
-        }
-
-        function computeWorldBounds() {
-            worldMinX = -MARGIN_X;
-            worldMaxX = width + MARGIN_X;
-            worldMinY = -WRAP_Y_NEAR - MARGIN_Y_EXTENT;
-            worldMaxY = height + WRAP_Y_NEAR + MARGIN_Y_EXTENT + parallaxScrollReserve();
-        }
-
         function buildGridSkeleton() {
-            const cellSize = gridCellSize();
-            computeWorldBounds();
-            cols = Math.ceil((worldMaxX - worldMinX) / cellSize) + 1;
-            rows = Math.ceil((worldMaxY - worldMinY) / cellSize) + 1;
+            const cellSize = config.connectionDistance || 100;
+            cols = Math.ceil(width / cellSize) + 2;
+            rows = Math.ceil(height / cellSize) + 2;
             grid = new Array(cols * rows);
             for (let i = 0; i < grid.length; i++) grid[i] = [];
         }
 
-        function particleCell(p) {
-            const cellSize = gridCellSize();
-            const cx = ((p.x - worldMinX) / cellSize) | 0;
-            const cy = ((p.y - worldMinY) / cellSize) | 0;
-            return {
-                cx: Math.max(0, Math.min(cols - 1, cx)),
-                cy: Math.max(0, Math.min(rows - 1, cy)),
-            };
-        }
-
         function spawn() {
-            computeWorldBounds();
             const target = Math.min(
                 config.maxParticles,
                 Math.floor(width * height * config.density)
             );
             particles = [];
             for (let i = 0; i < target; i++) particles.push(make());
-        }
-
-        function randomSpawnY() {
-            if (Math.random() < 0.65) {
-                return Math.random() * height;
-            }
-            return height + Math.random() * Math.max(1, worldMaxY - height);
         }
 
         function make() {
@@ -152,7 +107,7 @@
             const vy = Math.sin(angle) * speed;
             return {
                 x: Math.random() * width,
-                y: randomSpawnY(),
+                y: Math.random() * height,
                 vx: vx,
                 vy: vy,
                 baseVx: vx,                                  // remembered for damping-back
@@ -167,16 +122,11 @@
             };
         }
 
-        /* Scroll parallax is render-only (see render()) — never mutates p.y.
-           Applying parallax to physics Y pushed margin particles through wrap/grid
-           at top/bottom; X edges had no scroll coupling, so left/right stayed smooth. */
-        function parallaxOffset() {
-            return -window.scrollY * (config.parallaxFactor || 0);
-        }
-
-        function update(p, mouse, parallaxY, mouseVx, mouseVy) {
+        function update(p, mouse, scrollDelta, mouseVx, mouseVy) {
             p.x += p.vx;
             p.y += p.vy;
+            // parallax: shift particles opposite to scroll, scaled by factor
+            p.y -= scrollDelta * (config.parallaxFactor || 0);
             p.twinkle += p.twinkleSpeed;
 
             // Cursor interaction — small "physical ball" pushing particles aside.
@@ -190,7 +140,7 @@
             // pushed, just like water in front of a moving hand.
             if (config.reactsToMouse && mouse.active && (mouseVx !== 0 || mouseVy !== 0)) {
                 const dx = p.x - mouse.x;
-                const dy = (p.y + parallaxY) - mouse.y;
+                const dy = p.y - mouse.y;
                 const distSq = dx * dx + dy * dy;
                 const infl = config.mouseInfluence;
                 if (distSq < infl * infl) {
@@ -238,19 +188,22 @@
                 p.vy = (p.vy / s) * maxV;
             }
 
-            // Scatter wrap — re-enter on opposite edge (avoids horizontal-line artifact on fast scroll)
-            if (p.x < -MARGIN_X) {
-                p.x = width + MARGIN_X;
+            // Wrap edges with SCATTER. When a particle leaves at one edge it
+            // re-enters at a random spot on the opposite edge (random X and a
+            // randomized Y band) — this breaks up the "horizontal line of new
+            // particles" artifact that appeared on fast scrolls.
+            if (p.x < -30) {
+                p.x = width + 30;
                 p.y = Math.random() * height;
-            } else if (p.x > width + MARGIN_X) {
-                p.x = -MARGIN_X;
+            } else if (p.x > width + 30) {
+                p.x = -30;
                 p.y = Math.random() * height;
             }
-            if (p.y < -MARGIN_Y_EXTENT) {
-                p.y = height + WRAP_Y_NEAR + Math.random() * MARGIN_Y_EXTENT;
+            if (p.y < -30) {
+                p.y = height + 30 + Math.random() * 120;     // 30-150px below screen
                 p.x = Math.random() * width;
-            } else if (p.y > worldMaxY) {
-                p.y = -WRAP_Y_NEAR - Math.random() * MARGIN_Y_EXTENT;
+            } else if (p.y > height + 30) {
+                p.y = -30 - Math.random() * 120;
                 p.x = Math.random() * width;
             }
         }
@@ -258,18 +211,21 @@
         /* ---------- SPATIAL HASH CONNECTION CHECK ----------
            Only check particle pairs in the same or neighboring grid cell.
            For 600+ particles this is ~50-100x faster than the naive O(n²). */
-        function drawConnections(parallaxY) {
+        function drawConnections(mouse) {
             if (!config.drawConnections) return;
             const maxDist = config.connectionDistance;
             const maxDistSq = maxDist * maxDist;
+            const cellSize = maxDist;
 
             // 1) clear grid buckets
             for (let i = 0; i < grid.length; i++) grid[i].length = 0;
 
-            // 2) bucket ALL particles (on-screen + margin) by real position — no edge clamp pile-up
+            // 2) bucket particles into cells
             for (let i = 0; i < particles.length; i++) {
-                const cell = particleCell(particles[i]);
-                grid[cell.cy * cols + cell.cx].push(i);
+                const p = particles[i];
+                const cx = Math.max(0, Math.min(cols - 1, ((p.x / cellSize) | 0) + 1));
+                const cy = Math.max(0, Math.min(rows - 1, ((p.y / cellSize) | 0) + 1));
+                grid[cy * cols + cx].push(i);
             }
 
             // (Cursor-to-particle "spider-web" lines intentionally removed — the
@@ -285,10 +241,10 @@
                         const i = cell[ci];
                         const a = particles[i];
 
-                        // all 8 neighbors + same cell (symmetric — fixes missing links below viewport)
-                        for (let dy = -1; dy <= 1; dy++) {
+                        // check same cell (j > i) + neighbors right/below to avoid dupes
+                        for (let dy = 0; dy <= 1; dy++) {
                             for (let dx = -1; dx <= 1; dx++) {
-                                if (dy < 0 || (dy === 0 && dx <= 0)) continue;
+                                if (dy === 0 && dx < 0) continue;       // skip already-checked half
                                 const ncx = cx + dx;
                                 const ncy = cy + dy;
                                 if (ncx < 0 || ncx >= cols || ncy < 0 || ncy >= rows) continue;
@@ -297,24 +253,20 @@
 
                                 for (let cj = 0; cj < ncell.length; cj++) {
                                     const j = ncell[cj];
-                                    if (j <= i && dy === 0 && dx === 0) continue;
+                                    if (j <= i && !(dx !== 0 || dy !== 0)) continue;  // same cell + same index
+                                    if (dx === 0 && dy === 0 && j <= i) continue;
                                     const b = particles[j];
                                     const bdx = a.x - b.x;
                                     const bdy = a.y - b.y;
                                     const distSq = bdx * bdx + bdy * bdy;
                                     if (distSq < maxDistSq) {
-                                        const dist = Math.sqrt(distSq);
-                                        const t = 1 - dist / maxDist;
-                                        // Smoothstep fade — stable lines, no harsh on/off at max distance
-                                        const smooth = t * t * (3 - 2 * t);
-                                        const lineAlpha = smooth * config.lineOpacity;
-                                        if (lineAlpha < 0.04) continue;
+                                        const alpha = 1 - Math.sqrt(distSq) / maxDist;
                                         const useAccent = (a.accent || b.accent);
                                         ctx.beginPath();
-                                        ctx.moveTo(a.x, a.y + parallaxY);
-                                        ctx.lineTo(b.x, b.y + parallaxY);
+                                        ctx.moveTo(a.x, a.y);
+                                        ctx.lineTo(b.x, b.y);
                                         ctx.strokeStyle = (useAccent ? config.colors.accentLineColor : config.colors.lineColor)
-                                            + lineAlpha + ')';
+                                            + (alpha * config.lineOpacity) + ')';
                                         ctx.lineWidth = useAccent ? config.lineWidth * 1.3 : config.lineWidth;
                                         ctx.stroke();
                                     }
@@ -326,8 +278,7 @@
             }
         }
 
-        function drawParticle(p, parallaxY) {
-            const sy = p.y + parallaxY;
+        function drawParticle(p) {
             // Twinkle: opacity oscillates softly
             const twinkleAmp = p.accent ? 0.22 : 0.14;
             const opacity = Math.max(0, Math.min(1,
@@ -336,30 +287,29 @@
 
             // Core dot
             ctx.beginPath();
-            ctx.arc(p.x, sy, p.r, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
             ctx.fillStyle = (p.accent ? config.colors.accentColor : config.colors.particleColor) + opacity + ')';
             ctx.fill();
 
             // Soft halo on accent ("hub") particles — dimmer than before
             if (p.accent && config.drawGlow) {
                 const glowR = p.r * 4.2;
-                const grad = ctx.createRadialGradient(p.x, sy, p.r * 0.5, p.x, sy, glowR);
+                const grad = ctx.createRadialGradient(p.x, p.y, p.r * 0.5, p.x, p.y, glowR);
                 grad.addColorStop(0, config.colors.glowColor + (opacity * 0.28) + ')');
                 grad.addColorStop(0.5, config.colors.glowColor + (opacity * 0.06) + ')');
                 grad.addColorStop(1, config.colors.glowColor + '0)');
                 ctx.beginPath();
-                ctx.arc(p.x, sy, glowR, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
                 ctx.fillStyle = grad;
                 ctx.fill();
             }
         }
 
-        function render(mouse, mouseVx, mouseVy) {
-            const parallaxY = parallaxOffset();
+        function render(mouse, scrollDelta, mouseVx, mouseVy) {
             ctx.clearRect(0, 0, width, height);
-            for (const p of particles) update(p, mouse, parallaxY, mouseVx, mouseVy);
-            drawConnections(parallaxY);
-            for (const p of particles) drawParticle(p, parallaxY);
+            for (const p of particles) update(p, mouse, scrollDelta, mouseVx, mouseVy);
+            drawConnections(mouse);
+            for (const p of particles) drawParticle(p);
         }
 
         return { resize, render };
@@ -381,7 +331,7 @@
         accentRatio: 0.18,
         drawConnections: true,
         drawGlow: true,
-        parallaxFactor: 0.18,
+        parallaxFactor: 0.18,                           // gentle scroll-coupled motion
         colors: NEAR_COLORS,
         lineOpacity: 0.32,
         lineWidth: 0.8,
@@ -402,7 +352,7 @@
         accentRatio: 0.10,
         drawConnections: true,
         drawGlow: false,
-        parallaxFactor: 0.09,
+        parallaxFactor: 0.09,                           // slower scroll-coupling (depth)
         colors: BACK_COLORS,
         lineOpacity: 0.22,
         lineWidth: 0.55,
@@ -416,7 +366,7 @@
        ============================================================ */
     const layers = [
         makeLayer('particle-canvas-back', BACK_CONFIG),
-        makeLayer('particle-canvas', NEAR_CONFIG),
+        makeLayer('particle-canvas',      NEAR_CONFIG),
     ].filter(Boolean);
 
     if (layers.length === 0) return;
@@ -438,6 +388,15 @@
     }, { passive: true });
     window.addEventListener('touchend', () => { mouse.active = false; });
 
+    /* Scroll tracking for parallax */
+    let lastScrollY = window.scrollY;
+    let pendingScrollDelta = 0;
+    window.addEventListener('scroll', () => {
+        const cur = window.scrollY;
+        pendingScrollDelta += (cur - lastScrollY);
+        lastScrollY = cur;
+    }, { passive: true });
+
     /* Animation loop — also tracks cursor velocity per frame. When the cursor
        is still, mouseVx/mouseVy decay to 0 within a frame and particles drift
        freely through the influence circle. */
@@ -445,11 +404,13 @@
     let prevMouseX = mouse.x;
     let prevMouseY = mouse.y;
     function animate() {
+        const delta = pendingScrollDelta;
+        pendingScrollDelta = 0;
         const mvx = mouse.x - prevMouseX;
         const mvy = mouse.y - prevMouseY;
         prevMouseX = mouse.x;
         prevMouseY = mouse.y;
-        for (const layer of layers) layer.render(mouse, mvx, mvy);
+        for (const layer of layers) layer.render(mouse, delta, mvx, mvy);
         animationId = requestAnimationFrame(animate);
     }
 
