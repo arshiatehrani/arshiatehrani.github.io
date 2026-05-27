@@ -216,41 +216,31 @@
             p.vx += (currentVx - p.vx) * 0.015 * dt;
             p.vy += (currentVy - p.vy) * 0.015 * dt;
 
-            // 2. Upgraded Dual-Action Cursor Interaction (Radial Repulsion + Momentum Transfer)
-            if (config.reactsToMouse && mouse.active) {
+            // 2. Dynamic Kinetic Push (only triggers when cursor is moving)
+            if (config.reactsToMouse && mouse.active && (mouseVx !== 0 || mouseVy !== 0)) {
                 const dx = p.x - mouse.x;
                 const dy = (p.y + parallaxY) - mouse.y;
                 const distSq = dx * dx + dy * dy;
                 const isMobile = window.innerWidth <= 768;
-                const infl = isMobile ? config.mouseInfluence * 0.8 : config.mouseInfluence * 1.15;
+                const infl = isMobile ? config.mouseInfluence * 0.7 : config.mouseInfluence;
 
                 if (distSq < infl * infl) {
                     const dist = Math.sqrt(distSq) || 0.1;
                     const t = 1 - dist / infl;              // 0 at edge, 1 at center
                     const eased = t * t * (3 - 2 * t);      // smoothstep easing
 
-                    // A. Radial Elastic Repulsion (creates a tactile bubble around cursor even when stationary)
-                    const repelForce = isMobile ? 0.38 : 0.95;
-                    const rx = (dx / dist) * repelForce * eased;
-                    const ry = (dy / dist) * repelForce * eased;
-                    p.vx += rx * dt;
-                    p.vy += ry * dt;
-
-                    // B. Dynamic Kinetic Push (transfers mouse swipe momentum)
-                    if (mouseVx !== 0 || mouseVy !== 0) {
-                        const cursorMag = Math.sqrt(mouseVx * mouseVx + mouseVy * mouseVy);
-                        if (cursorMag > 0.01) {
-                            const cosTheta = (mouseVx * dx + mouseVy * dy) / (cursorMag * dist);
-                            const frontness = Math.max(0, cosTheta);
-                            if (frontness > 0) {
-                                const CAP = isMobile ? 8 : 25;
-                                const cvx = Math.max(-CAP, Math.min(CAP, mouseVx));
-                                const cvy = Math.max(-CAP, Math.min(CAP, mouseVy));
-                                const force = isMobile ? config.mouseForce * 0.6 : config.mouseForce;
-                                const k = eased * force * frontness;
-                                p.vx += cvx * k * dt;
-                                p.vy += cvy * k * dt;
-                            }
+                    const cursorMag = Math.sqrt(mouseVx * mouseVx + mouseVy * mouseVy);
+                    if (cursorMag > 0.01) {
+                        const cosTheta = (mouseVx * dx + mouseVy * dy) / (cursorMag * dist);
+                        const frontness = Math.max(0, cosTheta);
+                        if (frontness > 0) {
+                            const CAP = isMobile ? 8 : 25;
+                            const cvx = Math.max(-CAP, Math.min(CAP, mouseVx));
+                            const cvy = Math.max(-CAP, Math.min(CAP, mouseVy));
+                            const force = isMobile ? config.mouseForce * 0.6 : config.mouseForce;
+                            const k = eased * force * frontness;
+                            p.vx += cvx * k * dt;
+                            p.vy += cvy * k * dt;
                         }
                     }
                 }
