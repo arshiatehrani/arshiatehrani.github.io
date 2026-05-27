@@ -59,8 +59,8 @@
     --particle-canvas-near-opacity: 0.80;
 
     --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-hover: 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
-    --transition-timeline: 0.12s cubic-bezier(0.22, 0.61, 0.36, 1);
+    --transition-hover: 0.08s ease-out;
+    --transition-timeline: 0.08s ease-out;
     --transition-slow: 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --hover-lift: -8px;
     --hover-slide: 8px;
