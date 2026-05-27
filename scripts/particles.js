@@ -388,9 +388,9 @@
         mouseForce: 0.45,                               // strong transfer inside the ball
     };
 
-    // BACK — background (2× foreground per screen, site-wide distribution)
+    // BACK — background (4× foreground per screen, site-wide distribution)
     const BACK_CONFIG = {
-        maxParticles: 360,
+        maxParticles: 720,
         baseOpacityMin: 0.42,
         baseOpacityRange: 0.38,
         minSpeed: 0.24,
