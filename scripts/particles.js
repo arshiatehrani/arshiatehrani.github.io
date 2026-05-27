@@ -59,7 +59,7 @@
     function makeLayer(canvasId, config) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
-        const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+        const ctx = canvas.getContext('2d', { alpha: true });
 
         let particles = [];
         let width = 0, height = 0;
@@ -188,24 +188,12 @@
                 p.vy = (p.vy / s) * maxV;
             }
 
-            // Wrap edges with SCATTER. When a particle leaves at one edge it
-            // re-enters at a random spot on the opposite edge (random X and a
-            // randomized Y band) — this breaks up the "horizontal line of new
-            // particles" artifact that appeared on fast scrolls.
-            if (p.x < -30) {
-                p.x = width + 30;
-                p.y = Math.random() * height;
-            } else if (p.x > width + 30) {
-                p.x = -30;
-                p.y = Math.random() * height;
-            }
-            if (p.y < -30) {
-                p.y = height + 30 + Math.random() * 120;     // 30-150px below screen
-                p.x = Math.random() * width;
-            } else if (p.y > height + 30) {
-                p.y = -30 - Math.random() * 120;
-                p.x = Math.random() * width;
-            }
+            // Toroidal wrap — particles stay inside the viewport so edge
+            // connections don't blink when off-screen margin particles teleport.
+            if (p.x < 0) p.x += width;
+            else if (p.x >= width) p.x -= width;
+            if (p.y < 0) p.y += height;
+            else if (p.y >= height) p.y -= height;
         }
 
         /* ---------- SPATIAL HASH CONNECTION CHECK ----------
@@ -220,11 +208,12 @@
             // 1) clear grid buckets
             for (let i = 0; i < grid.length; i++) grid[i].length = 0;
 
-            // 2) bucket particles into cells
+            // 2) bucket particles into cells (only in-bounds — toroidal wrap keeps all inside)
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
-                const cx = Math.max(0, Math.min(cols - 1, ((p.x / cellSize) | 0) + 1));
-                const cy = Math.max(0, Math.min(rows - 1, ((p.y / cellSize) | 0) + 1));
+                if (p.x < 0 || p.x >= width || p.y < 0 || p.y >= height) continue;
+                const cx = Math.min(cols - 1, Math.max(0, (p.x / cellSize) | 0));
+                const cy = Math.min(rows - 1, Math.max(0, (p.y / cellSize) | 0));
                 grid[cy * cols + cx].push(i);
             }
 
@@ -260,13 +249,18 @@
                                     const bdy = a.y - b.y;
                                     const distSq = bdx * bdx + bdy * bdy;
                                     if (distSq < maxDistSq) {
-                                        const alpha = 1 - Math.sqrt(distSq) / maxDist;
+                                        const dist = Math.sqrt(distSq);
+                                        const t = 1 - dist / maxDist;
+                                        // Smoothstep fade — stable lines, no harsh on/off at max distance
+                                        const smooth = t * t * (3 - 2 * t);
+                                        const lineAlpha = smooth * config.lineOpacity;
+                                        if (lineAlpha < 0.04) continue;
                                         const useAccent = (a.accent || b.accent);
                                         ctx.beginPath();
                                         ctx.moveTo(a.x, a.y);
                                         ctx.lineTo(b.x, b.y);
                                         ctx.strokeStyle = (useAccent ? config.colors.accentLineColor : config.colors.lineColor)
-                                            + (alpha * config.lineOpacity) + ')';
+                                            + lineAlpha + ')';
                                         ctx.lineWidth = useAccent ? config.lineWidth * 1.3 : config.lineWidth;
                                         ctx.stroke();
                                     }
