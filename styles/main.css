@@ -393,12 +393,22 @@ body::before {
     pointer-events: none;
 }
 
-.hero-content {
+.hero-motion {
+    width: 100%;
     max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
     position: relative;
     z-index: 2;
-    will-change: transform, opacity;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+.hero-content {
+    width: 100%;
+    max-width: 900px;
 }
 
 .hero-greeting {
@@ -466,10 +476,10 @@ body::before {
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
-    position: relative;
-    z-index: 3;
-    margin-top: -0.5rem;            /* tuck under description spacing */
-    will-change: opacity, transform;
+    width: 100%;
+    max-width: 520px;
+    margin-top: 0.5rem;
+    will-change: opacity;
 }
 
 .btn {
@@ -1615,19 +1625,47 @@ body::before {
     .section-line { display: none; }
     .section-title { white-space: normal; }
 
-    /* Clip hero zoom so scaled text does not blow out page width on phones */
     .hero {
         overflow: hidden;
         touch-action: pan-y;
+        padding: 5.5rem max(1.25rem, env(safe-area-inset-right)) 2rem
+                 max(1.25rem, env(safe-area-inset-left));
+        justify-content: center;
+    }
+
+    .hero-motion {
+        max-width: 100%;
+        transform-origin: 50% 48%;
     }
 
     .hero-content {
-        transform-origin: 50% 42%;
+        padding: 0 0.15rem;
+    }
+
+    .hero-name {
+        font-size: clamp(1.65rem, 7.8vw, 2.35rem);
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.12;
+    }
+
+    .hero-description {
+        max-width: 100%;
+        padding: 0 0.25rem;
     }
 
     .hero::before {
         width: min(800px, 120vw);
         height: min(800px, 120vw);
+    }
+
+    .navbar {
+        padding-left: max(1.25rem, env(safe-area-inset-left));
+        padding-right: max(1.25rem, env(safe-area-inset-right));
+    }
+
+    .nav-logo {
+        max-width: 58%;
     }
 
     .hero-buttons { flex-direction: column; align-items: center; }

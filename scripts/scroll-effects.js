@@ -97,9 +97,9 @@
     /* ---------- 4. CINEMATIC SCROLL HANDLERS ---------- */
     const progressBar = document.querySelector('.scroll-progress');
     const navbar = document.querySelector('.navbar');
+    const heroMotion = document.querySelector('.hero-motion');
     const heroContent = document.querySelector('.hero-content');
     const heroButtons = document.querySelector('.hero-buttons');
-    const heroSection = document.querySelector('.hero');
 
     function onScroll() {
         const scrollTop = window.scrollY;
@@ -114,35 +114,33 @@
             else navbar.classList.remove('scrolled');
         }
 
-        // HERO CINEMATIC EXIT — drift down, scale up while fading (text only)
-        if (heroContent) {
+        // HERO CINEMATIC EXIT — scale/drift on .hero-motion (text + buttons stay aligned)
+        if (heroMotion) {
             const mobile = isMobileView();
             const scaleEnd = heroScaleEnd();
             const scaleDelta = scaleEnd - 1;
-            const drift = mobile ? 0.22 : 0.35;
-            const fadeRate = mobile ? 1.4 : 1.2;
+            const drift = mobile ? 0.14 : 0.35;
+            const fadeRate = mobile ? 1.35 : 1.2;
             if (scrollTop < vh * 1.2) {
                 const t = Math.min(scrollTop / vh, 1);
                 const translateY = scrollTop * drift;
                 const scale = 1 + t * scaleDelta;
-                const opacity = Math.max(0, 1 - t * fadeRate);
-                heroContent.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
-                heroContent.style.opacity = String(opacity);
+                heroMotion.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
+                if (heroContent) {
+                    heroContent.style.opacity = String(Math.max(0, 1 - t * fadeRate));
+                }
             } else {
-                heroContent.style.opacity = '0';
-                heroContent.style.transform = `translate3d(0, ${vh * (mobile ? 0.32 : 0.42)}px, 0) scale(${scaleEnd})`;
+                heroMotion.style.transform = `translate3d(0, ${vh * (mobile ? 0.28 : 0.42)}px, 0) scale(${scaleEnd})`;
+                if (heroContent) heroContent.style.opacity = '0';
             }
         }
 
-        // HERO BUTTONS — separate layer; fade out early and fully hide (no box artifact)
         if (heroButtons) {
-            const tb = Math.min(scrollTop / (vh * 0.26), 1);
+            const mobile = isMobileView();
+            const tb = Math.min(scrollTop / (vh * (mobile ? 0.22 : 0.26)), 1);
             const op = Math.max(0, 1 - tb * 2.4);
-            const extraY = scrollTop * 0.12;
             const hidden = op <= 0.02;
-
             heroButtons.style.opacity = String(op);
-            heroButtons.style.transform = hidden ? 'translateY(24px)' : `translateY(${extraY}px)`;
             heroButtons.style.visibility = hidden ? 'hidden' : 'visible';
             heroButtons.style.pointerEvents = hidden ? 'none' : 'auto';
         }

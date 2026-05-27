@@ -128,6 +128,12 @@
 
     function fitHeroNameOneLine() {
         if (!heroName) return;
+        const mobile = window.innerWidth <= 768;
+        if (mobile) {
+            heroName.style.fontSize = '';
+            heroName.style.whiteSpace = 'normal';
+            return;
+        }
         const box = heroName.closest('.hero-content') || heroName.parentElement;
         if (!box) return;
 

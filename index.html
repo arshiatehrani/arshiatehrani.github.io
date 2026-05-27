@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- EDIT: Page title (shown in browser tab) -->
     <title>Arshia Esmail Tehrani | Portfolio</title>
     <!-- EDIT: Meta description for SEO -->
@@ -21,7 +21,7 @@
             }
         })();
     </script>
-    <link rel="stylesheet" href="styles/main.css?v=33" />
+    <link rel="stylesheet" href="styles/main.css?v=34" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
@@ -70,27 +70,28 @@
 
     <!-- ==================== HERO ==================== -->
     <section id="hero" class="hero">
-        <div class="hero-content">
-            <p class="hero-greeting reveal">Hello, I'm</p>
-            <h1 class="hero-name reveal">Arshia Esmail Tehrani</h1>
-            <h2 class="hero-tagline reveal">
-                <span class="static-text">I'm an</span>
-                <span class="typed-text" id="typed-text"></span>
-                <span class="cursor-typed">|</span>
-            </h2>
-            <p class="hero-description reveal">
-                <!-- EDIT: Short intro line about who you are and what you do -->
-                Brief intro that captures your focus and what makes your work distinct.
-                Replace this with one or two punchy sentences.
-            </p>
-        </div>
-        <!-- Outside hero-content so parent opacity fade doesn't clip buttons as a box -->
-        <div class="hero-buttons reveal">
-            <a href="#projects" class="btn btn-primary">View My Work</a>
-            <!-- EDIT: Put your resume PDF in assets/resume.pdf -->
-            <a href="assets/resume.pdf" class="btn btn-secondary" target="_blank" rel="noopener">
-                <i class="fas fa-file-pdf"></i> Resume
-            </a>
+        <div class="hero-motion">
+            <div class="hero-content">
+                <p class="hero-greeting reveal">Hello, I'm</p>
+                <h1 class="hero-name reveal">Arshia Esmail Tehrani</h1>
+                <h2 class="hero-tagline reveal">
+                    <span class="static-text">I'm an</span>
+                    <span class="typed-text" id="typed-text"></span>
+                    <span class="cursor-typed">|</span>
+                </h2>
+                <p class="hero-description reveal">
+                    <!-- EDIT: Short intro line about who you are and what you do -->
+                    Brief intro that captures your focus and what makes your work distinct.
+                    Replace this with one or two punchy sentences.
+                </p>
+            </div>
+            <div class="hero-buttons reveal">
+                <a href="#projects" class="btn btn-primary">View My Work</a>
+                <!-- EDIT: Put your resume PDF in assets/resume.pdf -->
+                <a href="assets/resume.pdf" class="btn btn-secondary" target="_blank" rel="noopener">
+                    <i class="fas fa-file-pdf"></i> Resume
+                </a>
+            </div>
         </div>
         <div class="scroll-indicator">
             <span>Scroll</span>
@@ -616,8 +617,8 @@
     <!-- App scripts (theme.js must run first so particles read the right colors) -->
     <script src="scripts/theme.js?v=11"></script>
     <script src="scripts/particles.js?v=37"></script>
-    <script src="scripts/scroll-effects.js?v=37"></script>
-    <script src="scripts/main.js?v=27"></script>
+    <script src="scripts/scroll-effects.js?v=38"></script>
+    <script src="scripts/main.js?v=28"></script>
 
     <!-- Initialize the embedded world map once ArcGIS is ready -->
     <script>
