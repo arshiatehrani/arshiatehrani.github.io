@@ -126,13 +126,13 @@
         }
 
         function gridCellSize() {
-            return (config.connectionDistance || 100) * 0.5;
+            return config.connectionDistance || 100;
         }
 
-        /* Viewport grid for connections — bucket by on-screen position, not clamped world edge */
-        function particleViewCell(p, parallaxY, viewCols, viewRows, cellSize) {
-            const cx = ((p.x / cellSize) | 0) + 1;
-            const cy = (((p.y + parallaxY) / cellSize) | 0) + 1;
+        /* Viewport grid for connections — bucket by on-screen position (shifted by pad for boundary stability) */
+        function particleViewCell(p, parallaxY, viewCols, viewRows, cellSize, pad) {
+            const cx = (((p.x + pad) / cellSize) | 0);
+            const cy = ((((p.y + parallaxY + pad) / cellSize) | 0));
             if (cx < 0 || cx >= viewCols || cy < 0 || cy >= viewRows) return null;
             return { cx, cy };
         }
@@ -278,18 +278,21 @@
             const maxDist = config.connectionDistance;
             const maxDistSq = maxDist * maxDist;
             const cellSize = gridCellSize();
-            const viewCols = Math.ceil(width / cellSize) + 2;
-            const viewRows = Math.ceil(height / cellSize) + 2;
+            const pad = maxDist;
+
+            const gridWidth = width + 2 * pad;
+            const gridHeight = height + 2 * pad;
+            const viewCols = Math.ceil(gridWidth / cellSize) + 1;
+            const viewRows = Math.ceil(gridHeight / cellSize) + 1;
+            
             const viewGrid = new Array(viewCols * viewRows);
             for (let g = 0; g < viewGrid.length; g++) viewGrid[g] = [];
-
-            const pad = maxDist;
 
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
                 const sy = p.y + parallaxY;
                 if (!lineVisible(sy, pad)) continue;
-                const cell = particleViewCell(p, parallaxY, viewCols, viewRows, cellSize);
+                const cell = particleViewCell(p, parallaxY, viewCols, viewRows, cellSize, pad);
                 if (!cell) continue;
                 viewGrid[cell.cy * viewCols + cell.cx].push(i);
             }
@@ -327,7 +330,7 @@
                                         const t = 1 - dist / maxDist;
                                         const smooth = t * t * (3 - 2 * t);
                                         const lineAlpha = smooth * config.lineOpacity;
-                                        if (lineAlpha < 0.04) continue;
+                                        if (lineAlpha < 0.01) continue; // Lowered to 0.01 for buttery-soft fade out!
                                         const useAccent = (a.accent || b.accent);
                                         ctx.beginPath();
                                         ctx.moveTo(a.x, ay);
@@ -396,7 +399,7 @@
         maxSpeed: 0.48,
         minRadius: 1.4,
         maxRadius: 2.8,
-        connectionDistance: 130,
+        connectionDistance: 150,
         accentRatio: 0.18,
         drawConnections: true,
         drawGlow: true,
@@ -418,7 +421,7 @@
         maxSpeed: 0.96,
         minRadius: 0.7,
         maxRadius: 1.6,
-        connectionDistance: 95,
+        connectionDistance: 110,
         accentRatio: 0.10,
         drawConnections: true,
         drawGlow: false,
