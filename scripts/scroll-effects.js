@@ -78,35 +78,66 @@
     });
 
     /* ---------- 3. REVEAL OBSERVER ----------
-       Same in/out on mobile and desktop; mobile also syncs on scroll so fast
-       scroll-up does not leave the page empty while waiting for the observer. */
+       Same replay on scroll-up as desktop. Mobile adds scroll sync + a short
+       hide delay so items are not toggled off in one frame (animation stays visible). */
     const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+    const REVEAL_HIDE_DELAY_MS = 240;
+    const pendingRevealHide = new WeakMap();
 
     function revealObserverOptions() {
         if (isMobileView()) {
-            return { threshold: 0, rootMargin: '120px 0px 120px 0px' };
+            return { threshold: 0.05, rootMargin: '72px 0px 72px 0px' };
         }
         return { threshold: 0.08, rootMargin: '0px 0px -40px 0px' };
     }
 
-    function setRevealVisible(el, visible) {
-        el.classList.toggle('visible', visible);
+    function cancelRevealHide(el) {
+        const id = pendingRevealHide.get(el);
+        if (id != null) {
+            clearTimeout(id);
+            pendingRevealHide.delete(el);
+        }
+    }
+
+    function revealIn(el) {
+        cancelRevealHide(el);
+        el.classList.add('visible');
+    }
+
+    function revealOut(el) {
+        if (!isMobileView()) {
+            cancelRevealHide(el);
+            el.classList.remove('visible');
+            return;
+        }
+        cancelRevealHide(el);
+        pendingRevealHide.set(el, window.setTimeout(() => {
+            el.classList.remove('visible');
+            pendingRevealHide.delete(el);
+        }, REVEAL_HIDE_DELAY_MS));
+    }
+
+    function updateReveal(el, shouldShow) {
+        if (shouldShow) revealIn(el);
+        else revealOut(el);
+    }
+
+    function elementInRevealZone(el, margin) {
+        const vh = window.innerHeight;
+        const rect = el.getBoundingClientRect();
+        return rect.top < vh + margin && rect.bottom > -margin;
     }
 
     function syncRevealsInViewport() {
         if (!isMobileView()) return;
-        const vh = window.innerHeight;
-        const margin = 120;
         revealEls.forEach((el) => {
-            const rect = el.getBoundingClientRect();
-            const inView = rect.top < vh + margin && rect.bottom > -margin;
-            setRevealVisible(el, inView);
+            updateReveal(el, elementInRevealZone(el, 72));
         });
     }
 
     const revealObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
-            setRevealVisible(entry.target, entry.isIntersecting);
+            updateReveal(entry.target, entry.isIntersecting);
         });
     }, revealObserverOptions());
 
