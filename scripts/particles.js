@@ -151,16 +151,18 @@
                 // First spawn: build the full target
                 while (particles.length < target) {
                     const remaining = target - particles.length;
-                    // Spawn a regular geometric shape cluster (pentagon or hexagon) with ~12% probability
-                    if (remaining >= 5 && Math.random() < 0.12) {
-                        const N = Math.random() < 0.5 ? 5 : 6;
+                    // Spawn a regular geometric shape cluster (triangle to octagon) with ~12% probability
+                    if (remaining >= 3 && Math.random() < 0.12) {
+                        const N = Math.floor(3 + Math.random() * 6); // 3, 4, 5, 6, 7, 8
                         if (particles.length + N <= target) {
                             const spawnY = randomPageY();
                             const centerX = Math.random() * width;
                             const isAccent = Math.random() < config.accentRatio;
-                            const radius = N === 5 
-                                ? (config.connectionDistance * 0.35 + Math.random() * config.connectionDistance * 0.1)
-                                : (config.connectionDistance * 0.45 + Math.random() * config.connectionDistance * 0.1);
+                            
+                            // Adaptive scaling: larger polygons have slightly larger outer radius,
+                            // ensuring adjacent edges connect cleanly while keeping opposite diagonals hollow.
+                            const radiusFactor = 0.35 + (N - 3) * 0.05; // 0.35 for N=3, up to 0.60 for N=8
+                            const radius = config.connectionDistance * radiusFactor * (0.85 + Math.random() * 0.3);
                             
                             const angle = Math.random() * Math.PI * 2;
                             const t1 = Math.random();
@@ -184,15 +186,15 @@
                 // Viewport grew: add new particles without resetting existing active ones!
                 while (particles.length < target) {
                     const remaining = target - particles.length;
-                    if (remaining >= 5 && Math.random() < 0.12) {
-                        const N = Math.random() < 0.5 ? 5 : 6;
+                    if (remaining >= 3 && Math.random() < 0.12) {
+                        const N = Math.floor(3 + Math.random() * 6); // 3, 4, 5, 6, 7, 8
                         if (particles.length + N <= target) {
                             const spawnY = randomPageY();
                             const centerX = Math.random() * width;
                             const isAccent = Math.random() < config.accentRatio;
-                            const radius = N === 5 
-                                ? (config.connectionDistance * 0.35 + Math.random() * config.connectionDistance * 0.1)
-                                : (config.connectionDistance * 0.45 + Math.random() * config.connectionDistance * 0.1);
+                            
+                            const radiusFactor = 0.35 + (N - 3) * 0.05;
+                            const radius = config.connectionDistance * radiusFactor * (0.85 + Math.random() * 0.3);
 
                             const angle = Math.random() * Math.PI * 2;
                             const t1 = Math.random();
