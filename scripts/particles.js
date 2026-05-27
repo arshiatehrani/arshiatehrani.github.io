@@ -288,6 +288,10 @@
             const viewGrid = new Array(viewCols * viewRows);
             for (let g = 0; g < viewGrid.length; g++) viewGrid[g] = [];
 
+            // Tracking active connections for triangle mesh generation
+            const connectedTo = new Array(particles.length);
+            for (let i = 0; i < particles.length; i++) connectedTo[i] = [];
+
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
                 const sy = p.y + parallaxY;
@@ -330,7 +334,15 @@
                                         const t = 1 - dist / maxDist;
                                         const smooth = t * t * (3 - 2 * t);
                                         const lineAlpha = smooth * config.lineOpacity;
-                                        if (lineAlpha < 0.01) continue; // Lowered to 0.01 for buttery-soft fade out!
+                                        if (lineAlpha < 0.01) continue;
+
+                                        // Store connection uniquely by indexing smallest to largest to enable loop tracking
+                                        const pMin = Math.min(i, j);
+                                        const pMax = Math.max(i, j);
+                                        if (connectedTo[pMin].indexOf(pMax) === -1) {
+                                            connectedTo[pMin].push(pMax);
+                                        }
+
                                         const useAccent = (a.accent || b.accent);
                                         ctx.beginPath();
                                         ctx.moveTo(a.x, ay);
@@ -342,6 +354,41 @@
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+            }
+
+            // Draw extremely soft, organic triangular faces between mutually connected loops
+            for (let i = 0; i < particles.length; i++) {
+                const neighbors = connectedTo[i];
+                if (neighbors.length < 2) continue;
+                const a = particles[i];
+                const ay = a.y + parallaxY;
+
+                for (let n1 = 0; n1 < neighbors.length; n1++) {
+                    const j = neighbors[n1];
+                    const b = particles[j];
+                    const by = b.y + parallaxY;
+
+                    for (let n2 = n1 + 1; n2 < neighbors.length; n2++) {
+                        const k = neighbors[n2];
+                        const c = particles[k];
+                        const cy = c.y + parallaxY;
+
+                        // If j is also connected to k, we have a mutual triangle loop!
+                        if (connectedTo[j] && connectedTo[j].indexOf(k) !== -1) {
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, ay);
+                            ctx.lineTo(b.x, by);
+                            ctx.lineTo(c.x, cy);
+                            ctx.closePath();
+
+                            const alpha = (config.lineOpacity || 0.3) * 0.09;
+                            const useAccent = (a.accent || b.accent || c.accent);
+                            ctx.fillStyle = (useAccent ? config.colors.accentLineColor : config.colors.lineColor)
+                                + alpha + ')';
+                            ctx.fill();
                         }
                     }
                 }
