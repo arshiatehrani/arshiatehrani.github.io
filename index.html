@@ -21,18 +21,16 @@
             }
         })();
     </script>
-    <link rel="stylesheet" href="styles/main.css?v=32" />
+    <link rel="stylesheet" href="styles/main.css?v=33" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
 
     <!-- Icon libraries: Font Awesome (general) + Devicon (tech logos) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.min.css" />
 
-    <!-- ArcGIS API (for the embedded world map) -->
-    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" />
-    <script src="https://js.arcgis.com/4.29/"></script>
+    <!-- ArcGIS loads on demand when you scroll near the World section (see lazy-map.js) -->
 </head>
 <body>
     <!-- Two layered particle canvases — back (distant) + near (foreground) -->
@@ -606,37 +604,18 @@
         </div>
     </footer>
 
-    <!-- Lenis smooth scroll (cinematic feel) -->
-    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.1.13/bundled/lenis.min.js"></script>
+    <!-- Lenis smooth scroll (desktop only — skipped on mobile for performance) -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.1.13/bundled/lenis.min.js" defer></script>
 
-    <!-- World map data + renderer (shared with world.html) -->
-    <script src="scripts/world-data.js?v=27"></script>
-    <script src="scripts/world-map.js?v=11"></script>
+    <!-- World map data + renderer (ArcGIS itself loads lazily) -->
+    <script src="scripts/world-data.js?v=27" defer></script>
+    <script src="scripts/world-map.js?v=11" defer></script>
+    <script src="scripts/lazy-map.js?v=1" defer></script>
 
     <!-- App scripts (theme.js must run first so particles read the right colors) -->
-    <script src="scripts/theme.js?v=11"></script>
-    <script src="scripts/particles.js?v=21"></script>
-    <script src="scripts/scroll-effects.js?v=31"></script>
-    <script src="scripts/main.js?v=27"></script>
-
-    <!-- Initialize the embedded world map once ArcGIS is ready -->
-    <script>
-        (function () {
-            // ArcGIS loads asynchronously; wait until `require` is available
-            function tryInit() {
-                if (typeof require === 'undefined' || typeof window.initWorldMap !== 'function') {
-                    setTimeout(tryInit, 100);
-                    return;
-                }
-                window.initWorldMap('world-map-embed', {
-                    initialZoom: 2,
-                    center: [15, 25],
-                    showScaleBar: false,         // cleaner for the embed
-                    disableScrollZoom: true       // let the page scroll over the map
-                });
-            }
-            tryInit();
-        })();
-    </script>
+    <script src="scripts/theme.js?v=11" defer></script>
+    <script src="scripts/particles.js?v=22" defer></script>
+    <script src="scripts/scroll-effects.js?v=32" defer></script>
+    <script src="scripts/main.js?v=27" defer></script>
 </body>
 </html>

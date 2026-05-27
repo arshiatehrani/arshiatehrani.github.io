@@ -370,6 +370,7 @@ body::before {
    HERO
    ============================================================ */
 .hero {
+    content-visibility: visible;        /* hero is always painted (particles + intro) */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -546,6 +547,8 @@ body::before {
 .section {
     padding: var(--section-padding);
     position: relative;
+    content-visibility: auto;           /* browser skips layout/paint until section is near view */
+    contain-intrinsic-size: auto 600px;
     /* When the browser scrolls to a #section anchor, pretend the section
        starts 40px above its real top edge so the heading lands just under
        the navbar (with breathing room). Matches the Lenis offset. */

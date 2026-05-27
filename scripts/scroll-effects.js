@@ -20,45 +20,7 @@
         });
     });
 
-    /* ---------- 2. LENIS SMOOTH SCROLL ---------- */
-    let lenis = null;
-    if (typeof Lenis !== 'undefined') {
-        lenis = new Lenis({
-            duration: 1.15,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            smoothWheel: true,
-            smoothTouch: false,             // touch devices already smooth
-            wheelMultiplier: 1.0,
-            touchMultiplier: 1.5,
-        });
-        function rafLenis(time) {
-            lenis.raf(time);
-            onScroll();                 /* sync hero fades every frame — fixes fast-scroll clipping */
-            requestAnimationFrame(rafLenis);
-        }
-        requestAnimationFrame(rafLenis);
-
-        // Make anchor links use Lenis so motion stays smooth.
-        // POSITIVE offset = scroll PAST section top so heading lands close to navbar.
-        // Math: section internal padding-top is 128px, navbar ~60-65px tall.
-        // offset = 40 puts the heading at ~88px from the top — clears the navbar
-        // with ~25px of breathing room, but doesn't waste vertical space.
-        document.querySelectorAll('a[href^="#"]').forEach((link) => {
-            link.addEventListener('click', (e) => {
-                const href = link.getAttribute('href');
-                if (href.length <= 1) return;
-                const target = document.querySelector(href);
-                if (!target) return;
-                e.preventDefault();
-                lenis.scrollTo(target, { offset: 40 });
-            });
-        });
-
-        // expose for other scripts
-        window.__lenis = lenis;
-    }
-
-    /* ---------- 3. REVEAL OBSERVER ----------
+    /* ---------- 2. REVEAL OBSERVER ----------
        Apple-style: when an element enters the viewport it animates IN,
        when it leaves (scrolled past, above OR below) it animates OUT
        so scrolling back triggers the animation again. */
@@ -75,12 +37,12 @@
 
     revealEls.forEach((el) => revealObserver.observe(el));
 
-    /* ---------- 4. CINEMATIC SCROLL HANDLERS ---------- */
+    /* ---------- 3. CINEMATIC SCROLL HANDLERS ---------- */
     const progressBar = document.querySelector('.scroll-progress');
     const navbar = document.querySelector('.navbar');
     const heroContent = document.querySelector('.hero-content');
     const heroButtons = document.querySelector('.hero-buttons');
-    const heroSection = document.querySelector('.hero');
+    const sectionHeaders = document.querySelectorAll('.section-header');
 
     function onScroll() {
         const scrollTop = window.scrollY;
@@ -124,7 +86,7 @@
         }
 
         // SECTION HEADERS — subtle horizontal drift as they pass through viewport
-        document.querySelectorAll('.section-header').forEach((h) => {
+        sectionHeaders.forEach((h) => {
             const rect = h.getBoundingClientRect();
             const center = rect.top + rect.height / 2;
             const fromCenter = (center - vh / 2) / vh;       // -1 .. 1 across viewport
@@ -143,6 +105,41 @@
         }
     }, { passive: true });
     onScroll();
+
+    /* ---------- 4. LENIS SMOOTH SCROLL (desktop only — mobile uses native scroll) ---------- */
+    const preferNativeScroll = window.matchMedia('(max-width: 768px)').matches
+        || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let lenis = null;
+    if (typeof Lenis !== 'undefined' && !preferNativeScroll) {
+        lenis = new Lenis({
+            duration: 1.15,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            smoothWheel: true,
+            smoothTouch: false,
+            wheelMultiplier: 1.0,
+            touchMultiplier: 1.5,
+        });
+        lenis.on('scroll', onScroll);
+        function rafLenis(time) {
+            lenis.raf(time);
+            requestAnimationFrame(rafLenis);
+        }
+        requestAnimationFrame(rafLenis);
+
+        document.querySelectorAll('a[href^="#"]').forEach((link) => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (href.length <= 1) return;
+                const target = document.querySelector(href);
+                if (!target) return;
+                e.preventDefault();
+                lenis.scrollTo(target, { offset: 40 });
+            });
+        });
+
+        window.__lenis = lenis;
+    }
 
     /* ---------- 5. STAT COUNTERS ---------- */
     const counters = document.querySelectorAll('.stat-number');
