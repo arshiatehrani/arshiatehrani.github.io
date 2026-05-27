@@ -133,10 +133,15 @@
 
         function make(spawnY) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = config.minSpeed + Math.random() * (config.maxSpeed - config.minSpeed);
+            /* Two random samples → wider, more natural spread of speeds per particle */
+            const t1 = Math.random();
+            const t2 = Math.random();
+            const span = config.maxSpeed - config.minSpeed;
+            const speed = config.minSpeed + (t1 + t2) * 0.5 * span;
+            const wobble = 0.7 + Math.random() * 0.6;
             const isAccent = Math.random() < config.accentRatio;
-            const vx = Math.cos(angle) * speed;
-            const vy = Math.sin(angle) * speed;
+            const vx = Math.cos(angle) * speed * wobble;
+            const vy = Math.sin(angle) * speed * wobble;
             return {
                 x: Math.random() * width,
                 y: spawnY,
@@ -366,8 +371,8 @@
     // NEAR — foreground (maxParticles = count per screen; site-wide via spawn × page height)
     const NEAR_CONFIG = {
         maxParticles: 180,
-        minSpeed: 0.30,
-        maxSpeed: 1.05,
+        minSpeed: 0.12,
+        maxSpeed: 0.48,
         minRadius: 1.4,
         maxRadius: 2.8,
         connectionDistance: 130,
@@ -388,8 +393,8 @@
         maxParticles: 360,
         baseOpacityMin: 0.42,
         baseOpacityRange: 0.38,
-        minSpeed: 0.15,
-        maxSpeed: 0.45,
+        minSpeed: 0.24,
+        maxSpeed: 0.96,
         minRadius: 0.7,
         maxRadius: 1.6,
         connectionDistance: 95,
