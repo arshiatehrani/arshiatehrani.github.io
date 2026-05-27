@@ -68,6 +68,11 @@
         // Pre-allocated spatial grid (rebuilt each frame, but arrays reused)
         let grid = [];
         let cols = 0, rows = 0;
+        let worldMinX = 0, worldMaxX = 0, worldMinY = 0, worldMaxY = 0;
+
+        const MARGIN_X = 30;
+        const MARGIN_Y_BELOW = 150;   /* matches scatter wrap below viewport */
+        const MARGIN_Y_ABOVE = 150;
 
         function resize() {
             width = window.innerWidth;
@@ -82,12 +87,30 @@
             buildGridSkeleton();
         }
 
+        function gridCellSize() {
+            return (config.connectionDistance || 100) * 0.5;
+        }
+
         function buildGridSkeleton() {
-            const cellSize = config.connectionDistance || 100;
-            cols = Math.ceil(width / cellSize) + 2;
-            rows = Math.ceil(height / cellSize) + 2;
+            const cellSize = gridCellSize();
+            worldMinX = -MARGIN_X;
+            worldMaxX = width + MARGIN_X;
+            worldMinY = -30 - MARGIN_Y_ABOVE;
+            worldMaxY = height + 30 + MARGIN_Y_BELOW;
+            cols = Math.ceil((worldMaxX - worldMinX) / cellSize) + 1;
+            rows = Math.ceil((worldMaxY - worldMinY) / cellSize) + 1;
             grid = new Array(cols * rows);
             for (let i = 0; i < grid.length; i++) grid[i] = [];
+        }
+
+        function particleCell(p) {
+            const cellSize = gridCellSize();
+            const cx = ((p.x - worldMinX) / cellSize) | 0;
+            const cy = ((p.y - worldMinY) / cellSize) | 0;
+            return {
+                cx: Math.max(0, Math.min(cols - 1, cx)),
+                cy: Math.max(0, Math.min(rows - 1, cy)),
+            };
         }
 
         function spawn() {
@@ -122,11 +145,14 @@
             };
         }
 
-        function update(p, mouse, scrollDelta, mouseVx, mouseVy) {
+        /* Parallax is render-only — scroll must not mutate p.y (causes top/bottom line blink). */
+        function parallaxOffset() {
+            return -window.scrollY * (config.parallaxFactor || 0);
+        }
+
+        function update(p, mouse, parallaxY, mouseVx, mouseVy) {
             p.x += p.vx;
             p.y += p.vy;
-            // parallax: shift particles opposite to scroll, scaled by factor
-            p.y -= scrollDelta * (config.parallaxFactor || 0);
             p.twinkle += p.twinkleSpeed;
 
             // Cursor interaction — small "physical ball" pushing particles aside.
@@ -140,7 +166,7 @@
             // pushed, just like water in front of a moving hand.
             if (config.reactsToMouse && mouse.active && (mouseVx !== 0 || mouseVy !== 0)) {
                 const dx = p.x - mouse.x;
-                const dy = p.y - mouse.y;
+                const dy = (p.y + parallaxY) - mouse.y;
                 const distSq = dx * dx + dy * dy;
                 const infl = config.mouseInfluence;
                 if (distSq < infl * infl) {
@@ -211,21 +237,18 @@
         /* ---------- SPATIAL HASH CONNECTION CHECK ----------
            Only check particle pairs in the same or neighboring grid cell.
            For 600+ particles this is ~50-100x faster than the naive O(n²). */
-        function drawConnections(mouse) {
+        function drawConnections(parallaxY) {
             if (!config.drawConnections) return;
             const maxDist = config.connectionDistance;
             const maxDistSq = maxDist * maxDist;
-            const cellSize = maxDist;
 
             // 1) clear grid buckets
             for (let i = 0; i < grid.length; i++) grid[i].length = 0;
 
-            // 2) bucket particles into cells
+            // 2) bucket particles by physics position (margin included)
             for (let i = 0; i < particles.length; i++) {
-                const p = particles[i];
-                const cx = Math.max(0, Math.min(cols - 1, ((p.x / cellSize) | 0) + 1));
-                const cy = Math.max(0, Math.min(rows - 1, ((p.y / cellSize) | 0) + 1));
-                grid[cy * cols + cx].push(i);
+                const cell = particleCell(particles[i]);
+                grid[cell.cy * cols + cell.cx].push(i);
             }
 
             // (Cursor-to-particle "spider-web" lines intentionally removed — the
@@ -241,10 +264,9 @@
                         const i = cell[ci];
                         const a = particles[i];
 
-                        // check same cell (j > i) + neighbors right/below to avoid dupes
-                        for (let dy = 0; dy <= 1; dy++) {
+                        for (let dy = -1; dy <= 1; dy++) {
                             for (let dx = -1; dx <= 1; dx++) {
-                                if (dy === 0 && dx < 0) continue;       // skip already-checked half
+                                if (dy < 0 || (dy === 0 && dx <= 0)) continue;
                                 const ncx = cx + dx;
                                 const ncy = cy + dy;
                                 if (ncx < 0 || ncx >= cols || ncy < 0 || ncy >= rows) continue;
@@ -253,20 +275,23 @@
 
                                 for (let cj = 0; cj < ncell.length; cj++) {
                                     const j = ncell[cj];
-                                    if (j <= i && !(dx !== 0 || dy !== 0)) continue;  // same cell + same index
-                                    if (dx === 0 && dy === 0 && j <= i) continue;
+                                    if (j <= i && dy === 0 && dx === 0) continue;
                                     const b = particles[j];
                                     const bdx = a.x - b.x;
                                     const bdy = a.y - b.y;
                                     const distSq = bdx * bdx + bdy * bdy;
                                     if (distSq < maxDistSq) {
-                                        const alpha = 1 - Math.sqrt(distSq) / maxDist;
+                                        const dist = Math.sqrt(distSq);
+                                        const t = 1 - dist / maxDist;
+                                        const smooth = t * t * (3 - 2 * t);
+                                        const lineAlpha = smooth * config.lineOpacity;
+                                        if (lineAlpha < 0.04) continue;
                                         const useAccent = (a.accent || b.accent);
                                         ctx.beginPath();
-                                        ctx.moveTo(a.x, a.y);
-                                        ctx.lineTo(b.x, b.y);
+                                        ctx.moveTo(a.x, a.y + parallaxY);
+                                        ctx.lineTo(b.x, b.y + parallaxY);
                                         ctx.strokeStyle = (useAccent ? config.colors.accentLineColor : config.colors.lineColor)
-                                            + (alpha * config.lineOpacity) + ')';
+                                            + lineAlpha + ')';
                                         ctx.lineWidth = useAccent ? config.lineWidth * 1.3 : config.lineWidth;
                                         ctx.stroke();
                                     }
@@ -278,7 +303,8 @@
             }
         }
 
-        function drawParticle(p) {
+        function drawParticle(p, parallaxY) {
+            const sy = p.y + parallaxY;
             // Twinkle: opacity oscillates softly
             const twinkleAmp = p.accent ? 0.22 : 0.14;
             const opacity = Math.max(0, Math.min(1,
@@ -287,29 +313,30 @@
 
             // Core dot
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.arc(p.x, sy, p.r, 0, Math.PI * 2);
             ctx.fillStyle = (p.accent ? config.colors.accentColor : config.colors.particleColor) + opacity + ')';
             ctx.fill();
 
             // Soft halo on accent ("hub") particles — dimmer than before
             if (p.accent && config.drawGlow) {
                 const glowR = p.r * 4.2;
-                const grad = ctx.createRadialGradient(p.x, p.y, p.r * 0.5, p.x, p.y, glowR);
+                const grad = ctx.createRadialGradient(p.x, sy, p.r * 0.5, p.x, sy, glowR);
                 grad.addColorStop(0, config.colors.glowColor + (opacity * 0.28) + ')');
                 grad.addColorStop(0.5, config.colors.glowColor + (opacity * 0.06) + ')');
                 grad.addColorStop(1, config.colors.glowColor + '0)');
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+                ctx.arc(p.x, sy, glowR, 0, Math.PI * 2);
                 ctx.fillStyle = grad;
                 ctx.fill();
             }
         }
 
-        function render(mouse, scrollDelta, mouseVx, mouseVy) {
+        function render(mouse, mouseVx, mouseVy) {
+            const parallaxY = parallaxOffset();
             ctx.clearRect(0, 0, width, height);
-            for (const p of particles) update(p, mouse, scrollDelta, mouseVx, mouseVy);
-            drawConnections(mouse);
-            for (const p of particles) drawParticle(p);
+            for (const p of particles) update(p, mouse, parallaxY, mouseVx, mouseVy);
+            drawConnections(parallaxY);
+            for (const p of particles) drawParticle(p, parallaxY);
         }
 
         return { resize, render };
@@ -388,15 +415,6 @@
     }, { passive: true });
     window.addEventListener('touchend', () => { mouse.active = false; });
 
-    /* Scroll tracking for parallax */
-    let lastScrollY = window.scrollY;
-    let pendingScrollDelta = 0;
-    window.addEventListener('scroll', () => {
-        const cur = window.scrollY;
-        pendingScrollDelta += (cur - lastScrollY);
-        lastScrollY = cur;
-    }, { passive: true });
-
     /* Animation loop — also tracks cursor velocity per frame. When the cursor
        is still, mouseVx/mouseVy decay to 0 within a frame and particles drift
        freely through the influence circle. */
@@ -404,13 +422,11 @@
     let prevMouseX = mouse.x;
     let prevMouseY = mouse.y;
     function animate() {
-        const delta = pendingScrollDelta;
-        pendingScrollDelta = 0;
         const mvx = mouse.x - prevMouseX;
         const mvy = mouse.y - prevMouseY;
         prevMouseX = mouse.x;
         prevMouseY = mouse.y;
-        for (const layer of layers) layer.render(mouse, delta, mvx, mvy);
+        for (const layer of layers) layer.render(mouse, mvx, mvy);
         animationId = requestAnimationFrame(animate);
     }
 
