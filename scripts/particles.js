@@ -65,9 +65,6 @@
         let width = 0, height = 0;
         const dpr = Math.min(window.devicePixelRatio || 1, 1.75);   // tiny perf gain on retina
 
-        // Pre-allocated spatial grid (rebuilt each frame, but arrays reused)
-        let grid = [];
-        let cols = 0, rows = 0;
         let worldMinX = 0, worldMaxX = 0, worldMinY = 0, worldMaxY = 0;
 
         const MARGIN_X = 30;
@@ -99,30 +96,22 @@
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.scale(dpr, dpr);
             spawn();
-            buildGridSkeleton();
         }
 
         function gridCellSize() {
             return (config.connectionDistance || 100) * 0.5;
         }
 
-        function buildGridSkeleton() {
-            const cellSize = gridCellSize();
-            computeWorldBounds();
-            cols = Math.ceil((worldMaxX - worldMinX) / cellSize) + 1;
-            rows = Math.ceil((worldMaxY - worldMinY) / cellSize) + 1;
-            grid = new Array(cols * rows);
-            for (let i = 0; i < grid.length; i++) grid[i] = [];
+        /* Viewport grid for connections — bucket by on-screen position, not clamped world edge */
+        function particleViewCell(p, parallaxY, viewCols, viewRows, cellSize) {
+            const cx = ((p.x / cellSize) | 0) + 1;
+            const cy = (((p.y + parallaxY) / cellSize) | 0) + 1;
+            if (cx < 0 || cx >= viewCols || cy < 0 || cy >= viewRows) return null;
+            return { cx, cy };
         }
 
-        function particleCell(p) {
-            const cellSize = gridCellSize();
-            const cx = ((p.x - worldMinX) / cellSize) | 0;
-            const cy = ((p.y - worldMinY) / cellSize) | 0;
-            return {
-                cx: Math.max(0, Math.min(cols - 1, cx)),
-                cy: Math.max(0, Math.min(rows - 1, cy)),
-            };
+        function lineVisible(sy, pad) {
+            return sy > -pad && sy < height + pad;
         }
 
         function spawn() {
@@ -246,10 +235,11 @@
                 p.y = Math.random() * height;
             }
             if (p.y < worldMinY) {
-                p.y = height + WRAP_Y_NEAR + Math.random() * (worldMaxY - height - WRAP_Y_NEAR);
+                const band = Math.max(1, worldMaxY - height - WRAP_Y_NEAR);
+                p.y = height + WRAP_Y_NEAR + Math.random() * band;
                 p.x = Math.random() * width;
             } else if (p.y > worldMaxY) {
-                p.y = worldMinY + Math.random() * (WRAP_Y_NEAR + MARGIN_Y_ABOVE);
+                p.y = Math.random() * height;
                 p.x = Math.random() * width;
             }
         }
@@ -261,42 +251,48 @@
             if (!config.drawConnections) return;
             const maxDist = config.connectionDistance;
             const maxDistSq = maxDist * maxDist;
+            const cellSize = gridCellSize();
+            const viewCols = Math.ceil(width / cellSize) + 2;
+            const viewRows = Math.ceil(height / cellSize) + 2;
+            const viewGrid = new Array(viewCols * viewRows);
+            for (let g = 0; g < viewGrid.length; g++) viewGrid[g] = [];
 
-            // 1) clear grid buckets
-            for (let i = 0; i < grid.length; i++) grid[i].length = 0;
+            const pad = maxDist;
 
-            // 2) bucket particles by physics position (margin included)
             for (let i = 0; i < particles.length; i++) {
-                const cell = particleCell(particles[i]);
-                grid[cell.cy * cols + cell.cx].push(i);
+                const p = particles[i];
+                const sy = p.y + parallaxY;
+                if (!lineVisible(sy, pad)) continue;
+                const cell = particleViewCell(p, parallaxY, viewCols, viewRows, cellSize);
+                if (!cell) continue;
+                viewGrid[cell.cy * viewCols + cell.cx].push(i);
             }
 
-            // (Cursor-to-particle "spider-web" lines intentionally removed — the
-            // user prefers only the lattice connections between particles.)
-
-            // 3) particle-to-particle lines via grid neighbors only
-            for (let cy = 0; cy < rows; cy++) {
-                for (let cx = 0; cx < cols; cx++) {
-                    const cell = grid[cy * cols + cx];
+            for (let cy = 0; cy < viewRows; cy++) {
+                for (let cx = 0; cx < viewCols; cx++) {
+                    const cell = viewGrid[cy * viewCols + cx];
                     if (cell.length === 0) continue;
 
                     for (let ci = 0; ci < cell.length; ci++) {
                         const i = cell[ci];
                         const a = particles[i];
+                        const ay = a.y + parallaxY;
 
                         for (let dy = -1; dy <= 1; dy++) {
                             for (let dx = -1; dx <= 1; dx++) {
                                 if (dy < 0 || (dy === 0 && dx <= 0)) continue;
                                 const ncx = cx + dx;
                                 const ncy = cy + dy;
-                                if (ncx < 0 || ncx >= cols || ncy < 0 || ncy >= rows) continue;
-                                const ncell = grid[ncy * cols + ncx];
+                                if (ncx < 0 || ncx >= viewCols || ncy < 0 || ncy >= viewRows) continue;
+                                const ncell = viewGrid[ncy * viewCols + ncx];
                                 if (ncell.length === 0) continue;
 
                                 for (let cj = 0; cj < ncell.length; cj++) {
                                     const j = ncell[cj];
                                     if (j <= i && dy === 0 && dx === 0) continue;
                                     const b = particles[j];
+                                    const by = b.y + parallaxY;
+                                    if (!lineVisible(ay, pad) && !lineVisible(by, pad)) continue;
                                     const bdx = a.x - b.x;
                                     const bdy = a.y - b.y;
                                     const distSq = bdx * bdx + bdy * bdy;
@@ -308,8 +304,8 @@
                                         if (lineAlpha < 0.04) continue;
                                         const useAccent = (a.accent || b.accent);
                                         ctx.beginPath();
-                                        ctx.moveTo(a.x, a.y + parallaxY);
-                                        ctx.lineTo(b.x, b.y + parallaxY);
+                                        ctx.moveTo(a.x, ay);
+                                        ctx.lineTo(b.x, by);
                                         ctx.strokeStyle = (useAccent ? config.colors.accentLineColor : config.colors.lineColor)
                                             + lineAlpha + ')';
                                         ctx.lineWidth = useAccent ? config.lineWidth * 1.3 : config.lineWidth;
@@ -325,6 +321,7 @@
 
         function drawParticle(p, parallaxY) {
             const sy = p.y + parallaxY;
+            if (sy < -80 || sy > height + 80) return;
             // Twinkle: opacity oscillates softly
             const twinkleAmp = p.accent ? 0.22 : 0.14;
             const opacity = Math.max(0, Math.min(1,
