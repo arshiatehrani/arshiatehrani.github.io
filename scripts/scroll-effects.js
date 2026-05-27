@@ -169,17 +169,35 @@
     }
 
     function scrollToAnchor(target) {
-        primeAnchorTarget(target);
-
-        const gap = anchorScrollOffset();
         const lenis = window.__lenis;
 
         if (lenis) {
             lenis.scrollTo(lenis.actualScroll, { immediate: true });
         }
 
+        // Temporarily clear transforms on all section-motion wrappers
+        // so we can calculate the true layout positions of target elements
+        const motionWrappers = document.querySelectorAll('.section-motion');
+        const savedTransforms = [];
+        motionWrappers.forEach((el, i) => {
+            savedTransforms[i] = el.style.transform;
+            el.style.transform = 'none';
+        });
+
+        // Prime and clear transform on target itself to get true coordinates
+        primeAnchorTarget(target);
+        const savedTargetTransform = target.style.transform;
+        target.style.transform = 'none';
+
+        const gap = anchorScrollOffset();
         const scroll = lenis ? lenis.scroll : window.scrollY;
         const y = Math.max(0, Math.round(target.getBoundingClientRect().top + scroll - gap));
+
+        // Restore transforms immediately (completely layout-invisible)
+        motionWrappers.forEach((el, i) => {
+            el.style.transform = savedTransforms[i];
+        });
+        target.style.transform = savedTargetTransform;
 
         if (lenis) {
             lenis.scrollTo(y);
