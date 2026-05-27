@@ -40,7 +40,7 @@
     function sectionFocusT(rect, vh) {
         const top = rect.top;
         const bottom = rect.bottom;
-        const enterEnd = vh * 0.14;
+        const enterEnd = vh * 0.5; // Reach full size (1.0) at the middle of the screen
         const enterStart = vh;
         let tIn = 1;
         if (top > enterEnd) {
@@ -137,9 +137,39 @@
     function anchorScrollOffset() {
         const navbar = document.querySelector('.navbar');
         const progress = document.querySelector('.scroll-progress');
-        const navH = navbar ? navbar.getBoundingClientRect().height : 72;
+        
+        let navH = 72;
+        if (navbar) {
+            // Measure navbar height using the "scrolled" state consistently
+            // This prevents discrepancy when the navbar shrinks upon scrolling down
+            const wasScrolled = navbar.classList.contains('scrolled');
+            if (!wasScrolled) {
+                const oldTransition = navbar.style.transition;
+                navbar.style.transition = 'none'; // Disable transition temporarily to read final shrunken height immediately
+                navbar.classList.add('scrolled');
+                void navbar.offsetHeight; // Force layout reflow
+                
+                navH = navbar.getBoundingClientRect().height;
+                
+                navbar.classList.remove('scrolled');
+                void navbar.offsetHeight; // Force layout reflow
+                navbar.style.transition = oldTransition; // Restore transition
+            } else {
+                navH = navbar.getBoundingClientRect().height;
+            }
+        }
+        
         const progressH = progress ? progress.offsetHeight : 3;
         return navH + progressH + 24; /* fixed nav + progress bar + gap below */
+    }
+
+    function getElementLayoutTop(el) {
+        let top = 0;
+        while (el) {
+            top += el.offsetTop;
+            el = el.offsetParent;
+        }
+        return top;
     }
 
     function scrollToAnchor(target) {
@@ -150,11 +180,10 @@
         }
 
         const gap = anchorScrollOffset();
-        const scroll = lenis ? lenis.scroll : window.scrollY;
 
         let y = 0;
         if (target.id !== 'hero') {
-            const targetTop = target.getBoundingClientRect().top + scroll;
+            const targetTop = getElementLayoutTop(target);
             if (target.tagName.toLowerCase() === 'section') {
                 // If it is a section, align to the section's content (below the top padding)
                 // This is extremely robust because <section> elements are completely static and unaffected by any scale/fade transforms inside them!

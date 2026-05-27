@@ -1733,7 +1733,7 @@ body::before {
     .hero {
         overflow: hidden;
         touch-action: pan-y;
-        padding: 5.5rem max(1.25rem, env(safe-area-inset-right)) 2rem
+        padding: 4.5rem max(1.25rem, env(safe-area-inset-right)) 1rem
                  max(1.25rem, env(safe-area-inset-left));
         justify-content: center;
     }
@@ -1747,16 +1747,26 @@ body::before {
         padding: 0 0.15rem;
     }
 
+    .hero-greeting {
+        margin-bottom: 0.75rem;
+    }
+
     .hero-name {
         font-size: clamp(1.65rem, 7.8vw, 2.35rem);
         white-space: normal;
         overflow-wrap: anywhere;
         line-height: 1.12;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-tagline {
+        margin-bottom: 1.25rem;
     }
 
     .hero-description {
         max-width: 100%;
         padding: 0 0.25rem;
+        margin-bottom: 1.75rem;
     }
 
     .hero::before {
