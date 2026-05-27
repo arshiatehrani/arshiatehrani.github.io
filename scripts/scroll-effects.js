@@ -12,8 +12,8 @@
 
     /* Hero zoom while scrolling — edit these values */
     const HERO_EXIT = {
-        scaleDesktop: 2,           /* max scale on wide screens (2 = 2× size) */
-        scaleMobile: 2,            /* max scale on phones (2 = 2× size) */
+        scaleDesktop: 1.5,         /* max scale on wide screens (1.5 = 150% size) */
+        scaleMobile: 1.5,          /* max scale on phones (1.5 = 150% size) */
         mobileBreakpointPx: 768,   /* match main.css @media (max-width: 768px) */
     };
 
