@@ -136,8 +136,10 @@
 
     function anchorScrollOffset() {
         const navbar = document.querySelector('.navbar');
+        const progress = document.querySelector('.scroll-progress');
         const navH = navbar ? navbar.getBoundingClientRect().height : 72;
-        return navH + 16; /* fixed nav + breathing room below it */
+        const progressH = progress ? progress.offsetHeight : 3;
+        return navH + progressH + 24; /* fixed nav + progress bar + gap below */
     }
 
     /* Scroll to the heading, not the section box (skips large section top padding) */
@@ -154,15 +156,32 @@
         );
     }
 
+    function nudgeAnchorIfNeeded(target, gap) {
+        const top = target.getBoundingClientRect().top;
+        if (top >= gap - 2) return;
+        const fix = top - gap;
+        if (window.__lenis) {
+            window.__lenis.scrollTo(window.__lenis.scroll + fix);
+        } else {
+            window.scrollTo({ top: Math.max(0, window.scrollY + fix), behavior: 'auto' });
+        }
+    }
+
     function scrollToAnchor(target) {
         const gap = anchorScrollOffset();
-        /* One shared Y for Lenis + native — Lenis *adds* offset to scroll, so don't pass +gap there */
-        const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - gap);
-        if (window.__lenis) {
-            window.__lenis.scrollTo(y);
-        } else {
-            window.scrollTo({ top: y, behavior: 'smooth' });
+        const lenis = window.__lenis;
+
+        if (lenis) {
+            /* Lenis adds offset to scroll — must be negative to clear the fixed nav */
+            lenis.scrollTo(target, {
+                offset: -gap,
+                onComplete: () => nudgeAnchorIfNeeded(target, gap),
+            });
+            return;
         }
+
+        const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - gap);
+        window.scrollTo({ top: y, behavior: 'smooth' });
     }
 
     document.querySelectorAll('a[href^="#"]').forEach((link) => {
@@ -172,8 +191,10 @@
             const target = resolveAnchorTarget(href);
             if (!target) return;
             e.preventDefault();
-            /* rAF: stable layout after any in-flight Lenis scroll (fixes "first click too high") */
-            requestAnimationFrame(() => scrollToAnchor(target));
+            /* Two frames: wait for Lenis/DOM to settle before measuring (fixes first-click overshoot) */
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => scrollToAnchor(target));
+            });
         });
     });
 
