@@ -205,8 +205,10 @@
 
             // 1. Organic Fluid Steering Field (sinusoidal underwater harmonic currents)
             const timeScale = p.twinkle * 0.15;
-            const flowAngle = Math.sin(p.x * 0.0035 + timeScale) * Math.PI 
-                            + Math.cos(p.y * 0.0035 - timeScale * 1.3) * Math.PI * 0.5;
+            // Lowering spatial frequency slightly to make current waves wider, encouraging particles
+            // to drift in cohesive geometric formations together more frequently and naturally.
+            const flowAngle = Math.sin(p.x * 0.0022 + timeScale) * Math.PI 
+                            + Math.cos(p.y * 0.0022 - timeScale * 1.3) * Math.PI * 0.5;
             
             const currentSpeed = (p.speed || config.minSpeed) * 0.28;
             const currentVx = Math.cos(flowAngle) * currentSpeed;
@@ -410,7 +412,7 @@
         maxSpeed: 0.48,
         minRadius: 1.4,
         maxRadius: 2.8,
-        connectionDistance: 150,
+        connectionDistance: 165,
         accentRatio: 0.18,
         drawConnections: true,
         drawGlow: true,
@@ -432,7 +434,7 @@
         maxSpeed: 0.96,
         minRadius: 0.7,
         maxRadius: 1.6,
-        connectionDistance: 110,
+        connectionDistance: 122,
         accentRatio: 0.10,
         drawConnections: true,
         drawGlow: false,
