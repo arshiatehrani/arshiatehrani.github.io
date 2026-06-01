@@ -20,13 +20,13 @@
     --fog-blue: #4a7fb3;
     --fog-light: #9ab1c9;
     --fog-lavender: #b0a8c4;
-    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #4a7fb3 45%, #b0a8c4 100%);
+    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #3e6d9c 50%, #9ab1c9 100%);
 
     --border-color: rgba(232, 237, 248, 0.08);
     --border-strong: rgba(154, 177, 201, 0.25);
 
     --body-glow-1: rgba(26, 82, 118, 0.35);
-    --body-glow-2: rgba(176, 168, 196, 0.08);
+    --body-glow-2: rgba(74, 127, 179, 0.08);
 
     --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --transition-theme: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
@@ -45,13 +45,13 @@
     --text-secondary: #1f3d62;
     --text-muted:     #3b516b;
 
-    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #1e4f80 45%, #6a558a 100%);
+    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #29648a 50%, #4a7fb3 100%);
 
     --border-color: rgba(26, 82, 118, 0.12);
     --border-strong: rgba(26, 82, 118, 0.30);
 
     --body-glow-1: rgba(255, 255, 255, 0.55);
-    --body-glow-2: rgba(176, 168, 196, 0.20);
+    --body-glow-2: rgba(74, 127, 179, 0.15);
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }

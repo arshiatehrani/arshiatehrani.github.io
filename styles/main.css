@@ -32,12 +32,12 @@
     --fog-lavender: #b0a8c4;
     --accent-primary: var(--fog-blue);
     --accent-secondary: var(--fog-lavender);
-    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #4a7fb3 45%, #b0a8c4 100%);
+    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #3e6d9c 50%, #9ab1c9 100%);
     --accent-gradient-soft: linear-gradient(135deg, rgba(26, 82, 118, 0.85) 0%, rgba(74, 127, 179, 0.75) 100%);
 
     /* ---- DECORATIVE GRADIENTS — these swap in light mode ---- */
     --hero-name-gradient: linear-gradient(180deg, #ffffff 0%, #9ab1c9 100%);
-    --stat-gradient: linear-gradient(135deg, #c8dcf2 0%, #e3d8ee 100%);
+    --stat-gradient: linear-gradient(135deg, #c8dcf2 0%, #9ab1c9 100%);
     --label-accent: #a8c2e0;
     /* "01 About" number color */
 
@@ -49,7 +49,7 @@
 
     /* ---- AMBIENT OVERLAYS ---- */
     --body-glow-1: rgba(26, 82, 118, 0.40);
-    --body-glow-2: rgba(176, 168, 196, 0.08);
+    --body-glow-2: rgba(74, 127, 179, 0.08);
     --hero-glow: rgba(74, 127, 179, 0.18);
 
     /* ---- PARTICLES — RGB triplets read by particles.js ---- */
@@ -58,7 +58,7 @@
     --particle-near-glow-rgb: 74, 127, 179;
     --particle-mouse-rgb: 26, 82, 118;
     --particle-back-rgb: 74, 127, 179;
-    --particle-back-accent-rgb: 176, 168, 196;
+    --particle-back-accent-rgb: 90, 140, 190;
     --particle-canvas-back-opacity: 0.62;
     --particle-canvas-near-opacity: 0.80;
 
@@ -95,11 +95,11 @@
     --text-muted: #3b516b;
     --text-on-accent: #f6f9fd;
 
-    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #1e4f80 45%, #6a558a 100%);
+    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #29648a 50%, #4a7fb3 100%);
     --accent-gradient-soft: linear-gradient(135deg, rgba(26, 82, 118, 0.95) 0%, rgba(30, 79, 128, 0.85) 100%);
 
     --hero-name-gradient: linear-gradient(180deg, #1A5276 0%, #4a7fb3 100%);
-    --stat-gradient: linear-gradient(135deg, #1A5276 0%, #6a558a 100%);
+    --stat-gradient: linear-gradient(135deg, #1A5276 0%, #4a7fb3 100%);
     --label-accent: #1e4f80;
 
     --border-color: rgba(26, 82, 118, 0.12);
@@ -108,7 +108,7 @@
     --shadow-card: 0 20px 50px rgba(26, 82, 118, 0.12);
 
     --body-glow-1: rgba(255, 255, 255, 0.55);
-    --body-glow-2: rgba(176, 168, 196, 0.20);
+    --body-glow-2: rgba(74, 127, 179, 0.15);
     --hero-glow: rgba(74, 127, 179, 0.18);
 
     /* Particles invert: navy / dark on the light fog */
@@ -117,7 +117,7 @@
     --particle-near-glow-rgb: 74, 127, 179;
     --particle-mouse-rgb: 26, 82, 118;
     --particle-back-rgb: 74, 127, 179;
-    --particle-back-accent-rgb: 100, 80, 130;
+    --particle-back-accent-rgb: 40, 90, 140;
     --particle-canvas-back-opacity: 0.55;
     --particle-canvas-near-opacity: 0.70;
 }
