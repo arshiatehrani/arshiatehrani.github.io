@@ -29,9 +29,8 @@
     --navy: #1A5276;
     --fog-blue: #4a7fb3;
     --fog-light: #9ab1c9;
-    --fog-lavender: #b0a8c4;
     --accent-primary: var(--fog-blue);
-    --accent-secondary: var(--fog-lavender);
+    --accent-secondary: var(--fog-light);
     --accent-gradient: linear-gradient(135deg, #1A5276 0%, #3e6d9c 50%, #9ab1c9 100%);
     --accent-gradient-soft: linear-gradient(135deg, rgba(26, 82, 118, 0.85) 0%, rgba(74, 127, 179, 0.75) 100%);
 
