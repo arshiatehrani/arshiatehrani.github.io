@@ -12,11 +12,11 @@
     /* ---------- 1. TYPEWRITER ---------- */
     // EDIT: change these roles to describe you.
     const ROLES = [
-        'AI Researcher.',
-        'ML Engineer.',
-        'Robotics Enthusiast.',
-        'Control Systems Geek.',
-        'Lifelong Learner.',
+        'an AI Researcher.',
+        'an ML Engineer.',
+        'a Robotics Enthusiast.',
+        'a Control Systems Geek.',
+        'a Lifelong Learner.',
     ];
 
     const typedEl = document.getElementById('typed-text');
