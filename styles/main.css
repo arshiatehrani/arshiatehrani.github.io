@@ -7,16 +7,16 @@
    ============================================================ */
 :root {
     /* ---- BACKGROUNDS (dark) ---- */
-    --bg-primary: #050a18;
+    --bg-primary: #050f19;
     /* deep night */
-    --bg-secondary: #0a1428;
-    --bg-card: rgba(20, 38, 68, 0.45);
-    --bg-card-strong: rgba(15, 28, 55, 0.7);
-    --bg-navbar: rgba(5, 10, 24, 0.7);
-    --bg-navbar-clear: rgba(5, 10, 24, 0);
-    --bg-overlay: rgba(5, 10, 24, 0.85);
+    --bg-secondary: #0d1926;
+    --bg-card: rgba(23, 43, 61, 0.45);
+    --bg-card-strong: rgba(18, 34, 48, 0.7);
+    --bg-navbar: rgba(5, 15, 25, 0.7);
+    --bg-navbar-clear: rgba(5, 15, 25, 0);
+    --bg-overlay: rgba(5, 15, 25, 0.85);
     /* mobile menu, project cards bg */
-    --bg-overlay-strong: rgba(5, 10, 24, 0.98);
+    --bg-overlay-strong: rgba(5, 15, 25, 0.98);
 
     /* ---- TEXT (dark) ---- */
     --text-primary: #f6f9fd;
@@ -54,9 +54,9 @@
 
     /* ---- PARTICLES — RGB triplets read by particles.js ---- */
     --particle-near-rgb: 154, 177, 201;
-    --particle-near-accent-rgb: 200, 215, 240;
-    --particle-near-glow-rgb: 120, 165, 215;
-    --particle-mouse-rgb: 210, 225, 250;
+    --particle-near-accent-rgb: 26, 82, 118;
+    --particle-near-glow-rgb: 74, 127, 179;
+    --particle-mouse-rgb: 26, 82, 118;
     --particle-back-rgb: 74, 127, 179;
     --particle-back-accent-rgb: 176, 168, 196;
     --particle-canvas-back-opacity: 0.62;

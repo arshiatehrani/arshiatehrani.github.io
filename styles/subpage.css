@@ -4,13 +4,13 @@
    light-mode override that mirrors styles/main.css.
    ============================================================ */
 :root {
-    --bg-primary: #050a18;
-    --bg-secondary: #0a1428;
-    --bg-card: rgba(20, 38, 68, 0.55);
-    --bg-card-strong: rgba(15, 28, 55, 0.85);
-    --bg-header: rgba(5, 10, 24, 0.85);
-    --bg-photo-caption-grad: linear-gradient(to top, rgba(5, 10, 24, 0.95), transparent);
-    --bg-lightbox: rgba(5, 10, 24, 0.95);
+    --bg-primary: #050f19;
+    --bg-secondary: #0d1926;
+    --bg-card: rgba(23, 43, 61, 0.55);
+    --bg-card-strong: rgba(18, 34, 48, 0.85);
+    --bg-header: rgba(5, 15, 25, 0.85);
+    --bg-photo-caption-grad: linear-gradient(to top, rgba(5, 15, 25, 0.95), transparent);
+    --bg-lightbox: rgba(5, 15, 25, 0.95);
 
     --text-primary: #f6f9fd;
     --text-secondary: #dae2ee;
