@@ -46,8 +46,8 @@
         if (top > enterEnd) {
             tIn = top >= enterStart ? 0 : 1 - (top - enterEnd) / (enterStart - enterEnd);
         }
-        const exitStart = vh * 0.9;
-        const exitEnd = vh * 0.1;
+        const exitStart = vh * 0.5;
+        const exitEnd = vh * 0.0;
         let tOut = 1;
         if (bottom < exitStart) {
             tOut = bottom <= exitEnd ? 0 : (bottom - exitEnd) / (exitStart - exitEnd);
