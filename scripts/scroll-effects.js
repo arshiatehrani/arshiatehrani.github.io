@@ -84,15 +84,13 @@
         }
         const vh = window.innerHeight;
         const { scaleMin, scaleMax } = SECTION_EXIT;
-        const fadeStrength = isMobileView() ? 1.15 : 1;
         sectionMotions.forEach((el) => {
             const rect = el.getBoundingClientRect();
             const raw = sectionFocusT(rect, vh);
             const t = raw * raw * (3 - 2 * raw);
             const scale = scaleMin + t * (scaleMax - scaleMin);
-            const opacity = Math.max(0, Math.min(1, t * fadeStrength));
             el.style.transform = `scale(${scale})`;
-            el.style.opacity = String(opacity);
+            el.style.opacity = '1';
         });
     }
 
