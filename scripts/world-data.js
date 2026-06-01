@@ -17,12 +17,12 @@
 
 // Cities you've LIVED IN
 window.STAYS = `city,latitude,longitude
-Kuala Lumpur,3.1390,101.6869`;
+Kuala Lumpur,3.1390,101.6869
+Tehran,35.6892,51.3890
+Kingston,44.2334,-76.4940`;
 
 // Cities you explored well (spent multiple days)
 window.WELL_EXPLORED = `city,latitude,longitude
-Tehran,35.6892,51.3890
-Kingston,44.2334,-76.4940
 Kish Island,26.5570,53.9800
 Toronto,43.6532,-79.3832
 Calgary,51.0447,-114.0719

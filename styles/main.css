@@ -1213,6 +1213,27 @@ body::before {
     flex: 1;
 }
 
+.project-description ul {
+    margin: 0.5rem 0 0 0;
+    padding-left: 1.2rem;
+    list-style-type: disc;
+}
+
+.project-description li {
+    margin-bottom: 0.6rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.project-description li:last-child {
+    margin-bottom: 0;
+}
+
+.project-description li strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
 .project-tags {
     display: flex;
     flex-wrap: wrap;
