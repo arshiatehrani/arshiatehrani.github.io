@@ -769,25 +769,56 @@
             const spaWorld = document.getElementById('spa-world-overlay');
             const body = document.body;
 
+            let lastScrollY = 0;
+
             /* ---------- Hash Routing ---------- */
             function handleHashChange() {
                 const hash = window.location.hash;
 
-                // Reset states
-                spaGallery.classList.remove('active');
-                spaGallery.setAttribute('aria-hidden', 'true');
-                spaWorld.classList.remove('active');
-                spaWorld.setAttribute('aria-hidden', 'true');
-                body.style.overflow = '';
+                if (hash === '#/gallery' || hash === '#/world') {
+                    // Record scroll position before opening
+                    if (!spaGallery.classList.contains('active') && !spaWorld.classList.contains('active')) {
+                        lastScrollY = window.scrollY;
+                    }
 
-                if (hash === '#/gallery') {
-                    spaGallery.classList.add('active');
-                    spaGallery.setAttribute('aria-hidden', 'false');
+                    // Reset both
+                    spaGallery.classList.remove('active');
+                    spaGallery.setAttribute('aria-hidden', 'true');
+                    spaWorld.classList.remove('active');
+                    spaWorld.setAttribute('aria-hidden', 'true');
+
+                    if (hash === '#/gallery') {
+                        spaGallery.classList.add('active');
+                        spaGallery.setAttribute('aria-hidden', 'false');
+                    } else {
+                        spaWorld.classList.add('active');
+                        spaWorld.setAttribute('aria-hidden', 'false');
+                    }
+
                     body.style.overflow = 'hidden';
-                } else if (hash === '#/world') {
-                    spaWorld.classList.add('active');
-                    spaWorld.setAttribute('aria-hidden', 'false');
-                    body.style.overflow = 'hidden';
+                    if (window.__lenis) {
+                        window.__lenis.stop();
+                    }
+                } else {
+                    const wasActive = spaGallery.classList.contains('active') || spaWorld.classList.contains('active');
+                    
+                    spaGallery.classList.remove('active');
+                    spaGallery.setAttribute('aria-hidden', 'true');
+                    spaWorld.classList.remove('active');
+                    spaWorld.setAttribute('aria-hidden', 'true');
+                    body.style.overflow = '';
+
+                    if (window.__lenis) {
+                        window.__lenis.start();
+                    }
+
+                    if (wasActive) {
+                        // Restore scroll position
+                        window.scrollTo(0, lastScrollY);
+                        if (window.__lenis) {
+                            window.__lenis.scrollTo(lastScrollY, { immediate: true });
+                        }
+                    }
                 }
             }
 
@@ -796,8 +827,10 @@
 
             /* ---------- Intercept Back Buttons ---------- */
             document.querySelectorAll('.btn-spa-close').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    window.location.hash = '';
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    history.pushState('', document.title, window.location.pathname + window.location.search);
+                    handleHashChange();
                 });
             });
 
