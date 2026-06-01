@@ -25,6 +25,7 @@
         })();
     </script>
     <link rel="stylesheet" href="styles/main.css?v=57" />
+    <link rel="stylesheet" href="styles/subpage.css?v=12" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
@@ -623,7 +624,113 @@
     <script src="scripts/scroll-effects.js?v=52"></script>
     <script src="scripts/main.js?v=28"></script>
 
-    <!-- Initialize the embedded world map once ArcGIS is ready -->
+    <!-- ==================== SPA GALLERY OVERLAY ==================== -->
+    <div id="spa-gallery-overlay" class="spa-overlay" aria-hidden="true">
+        <header class="subpage-header sticky">
+            <button class="back-link btn-spa-close" aria-label="Back to portfolio">
+                <i class="fas fa-arrow-left"></i> Back to portfolio
+            </button>
+            <h1 class="subpage-title">Gallery</h1>
+            <div style="width: 40px;"></div>
+        </header>
+
+        <main class="gallery-main">
+            <div class="gallery-intro">
+                <p class="gallery-tagline">Moments, places, and the in-between.</p>
+
+                <!-- Category filter — clicks filter the grid -->
+                <div class="gallery-filters" role="tablist">
+                    <button class="gallery-filter active" data-filter="all">All</button>
+                    <button class="gallery-filter" data-filter="travel">Travel</button>
+                    <button class="gallery-filter" data-filter="research">Research</button>
+                    <button class="gallery-filter" data-filter="life">Life</button>
+                </div>
+            </div>
+
+            <div class="masonry">
+                <figure class="photo" data-category="travel" data-full="assets/gallery/photo1.jpg" data-caption="Caption one — where, when, what.">
+                    <img src="assets/gallery/photo1.jpg" alt="Photo 1" onerror="this.parentElement.classList.add('photo-empty')" />
+                    <figcaption>
+                        <h3>Photo One</h3>
+                        <p>Short caption describing the moment.</p>
+                    </figcaption>
+                </figure>
+
+                <figure class="photo" data-category="research" data-full="assets/gallery/photo2.jpg" data-caption="Caption two.">
+                    <img src="assets/gallery/photo2.jpg" alt="Photo 2" onerror="this.parentElement.classList.add('photo-empty')" />
+                    <figcaption>
+                        <h3>Photo Two</h3>
+                        <p>Another caption.</p>
+                    </figcaption>
+                </figure>
+
+                <figure class="photo" data-category="life" data-full="assets/gallery/photo3.jpg" data-caption="Caption three.">
+                    <img src="assets/gallery/photo3.jpg" alt="Photo 3" onerror="this.parentElement.classList.add('photo-empty')" />
+                    <figcaption>
+                        <h3>Photo Three</h3>
+                        <p>One more.</p>
+                    </figcaption>
+                </figure>
+
+                <figure class="photo" data-category="travel" data-full="assets/gallery/photo4.jpg" data-caption="Caption four.">
+                    <img src="assets/gallery/photo4.jpg" alt="Photo 4" onerror="this.parentElement.classList.add('photo-empty')" />
+                    <figcaption>
+                        <h3>Photo Four</h3>
+                        <p>Duplicate a .photo block to add more.</p>
+                    </figcaption>
+                </figure>
+
+                <figure class="photo" data-category="research" data-full="assets/gallery/photo5.jpg" data-caption="Caption five.">
+                    <img src="assets/gallery/photo5.jpg" alt="Photo 5" onerror="this.parentElement.classList.add('photo-empty')" />
+                    <figcaption>
+                        <h3>Photo Five</h3>
+                        <p>A research moment.</p>
+                    </figcaption>
+                </figure>
+
+                <figure class="photo" data-category="life" data-full="assets/gallery/photo6.jpg" data-caption="Caption six.">
+                    <img src="assets/gallery/photo6.jpg" alt="Photo 6" onerror="this.parentElement.classList.add('photo-empty')" />
+                    <figcaption>
+                        <h3>Photo Six</h3>
+                        <p>A casual moment.</p>
+                    </figcaption>
+                </figure>
+            </div>
+        </main>
+
+        <!-- Lightbox inside SPA -->
+        <div class="lightbox" id="spa-lightbox" hidden>
+            <button class="lightbox-close" aria-label="Close"><i class="fas fa-xmark"></i></button>
+            <button class="lightbox-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+            <button class="lightbox-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+            <figure class="lightbox-figure">
+                <img class="lightbox-img" alt="" />
+                <figcaption class="lightbox-caption"></figcaption>
+            </figure>
+        </div>
+    </div>
+
+    <!-- ==================== SPA WORLD OVERLAY ==================== -->
+    <div id="spa-world-overlay" class="spa-overlay" aria-hidden="true">
+        <header class="subpage-header">
+            <button class="back-link btn-spa-close" aria-label="Back to portfolio">
+                <i class="fas fa-arrow-left"></i> Back to portfolio
+            </button>
+            <h1 class="subpage-title">World Experience</h1>
+            <div style="width: 40px;"></div>
+        </header>
+
+        <div class="map-legend" style="position: absolute; top: 95px; left: 1.25rem; z-index: 30;">
+            <div class="legend-row"><span class="legend-square stays"></span> Lived</div>
+            <div class="legend-row"><span class="legend-square explored"></span> Well explored</div>
+            <div class="legend-row"><span class="legend-circle travels"></span> Visited / Traveled</div>
+            <p class="legend-hint">Scroll to zoom · drag to pan · click marker for city · use the basemap toggle (bottom-right) for satellite</p>
+        </div>
+
+        <div id="spa-viewDiv"></div>
+    </div>
+
+    <!-- Initialize both world maps once ArcGIS is ready -->
     <script>
         (function () {
             // ArcGIS loads asynchronously; wait until `require` is available
@@ -632,14 +739,165 @@
                     setTimeout(tryInit, 100);
                     return;
                 }
+                
+                // 1. Initialize embedded dashboard map
                 window.initWorldMap('world-map-embed', {
                     initialZoom: 2,
                     center: [15, 25],
                     showScaleBar: false,         // cleaner for the embed
                     disableScrollZoom: true       // let the page scroll over the map
                 });
+
+                // 2. Initialize full screen SPA map
+                window.initWorldMap('spa-viewDiv', {
+                    initialZoom: 3,
+                    center: [0, 25],
+                    showScaleBar: true,
+                    disableScrollZoom: false
+                });
             }
             tryInit();
+        })();
+    </script>
+
+    <!-- SPA Router & Overlay Functionality -->
+    <script>
+        (function () {
+            'use strict';
+
+            const spaGallery = document.getElementById('spa-gallery-overlay');
+            const spaWorld = document.getElementById('spa-world-overlay');
+            const body = document.body;
+
+            /* ---------- Hash Routing ---------- */
+            function handleHashChange() {
+                const hash = window.location.hash;
+
+                // Reset states
+                spaGallery.classList.remove('active');
+                spaGallery.setAttribute('aria-hidden', 'true');
+                spaWorld.classList.remove('active');
+                spaWorld.setAttribute('aria-hidden', 'true');
+                body.style.overflow = '';
+
+                if (hash === '#/gallery') {
+                    spaGallery.classList.add('active');
+                    spaGallery.setAttribute('aria-hidden', 'false');
+                    body.style.overflow = 'hidden';
+                } else if (hash === '#/world') {
+                    spaWorld.classList.add('active');
+                    spaWorld.setAttribute('aria-hidden', 'false');
+                    body.style.overflow = 'hidden';
+                }
+            }
+
+            window.addEventListener('hashchange', handleHashChange);
+            window.addEventListener('DOMContentLoaded', handleHashChange);
+
+            /* ---------- Intercept Back Buttons ---------- */
+            document.querySelectorAll('.btn-spa-close').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.location.hash = '';
+                });
+            });
+
+            /* ---------- Intercept Fullscreen Triggers ---------- */
+            // 1. Gallery Fullscreen button
+            const galleryExpandBtn = document.querySelector('.gallery-section .expand-btn');
+            if (galleryExpandBtn) {
+                galleryExpandBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.hash = '#/gallery';
+                });
+            }
+
+            // 2. World Map Fullscreen button
+            const worldExpandBtn = document.querySelector('.world-section .expand-btn');
+            if (worldExpandBtn) {
+                worldExpandBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.hash = '#/world';
+                });
+            }
+
+            /* ---------- Intercept Grid Item Clicks (Direct Lightbox Opening!) ---------- */
+            const homepageGalleryItems = document.querySelectorAll('.gallery-section .gallery-item');
+            homepageGalleryItems.forEach((item, idx) => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    window.location.hash = '#/gallery';
+                    // Wait for transition to start, then trigger open in lightbox
+                    setTimeout(() => {
+                        if (window.openSpaLightbox) {
+                            window.openSpaLightbox(idx);
+                        }
+                    }, 50);
+                });
+            });
+
+            /* ---------- SPA Gallery Filter & Lightbox Logic ---------- */
+            const photos = Array.from(spaGallery.querySelectorAll('.photo'));
+            const filters = spaGallery.querySelectorAll('.gallery-filter');
+            const lb = document.getElementById('spa-lightbox');
+            const lbImg = lb.querySelector('.lightbox-img');
+            const lbCap = lb.querySelector('.lightbox-caption');
+
+            let visiblePhotos = photos.slice();
+            let currentIndex = 0;
+
+            filters.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    filters.forEach((b) => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const f = btn.dataset.filter;
+                    photos.forEach((p) => {
+                        const show = f === 'all' || p.dataset.category === f;
+                        p.classList.toggle('hidden', !show);
+                    });
+                    visiblePhotos = photos.filter((p) => !p.classList.contains('hidden'));
+                });
+            });
+
+            function openLightbox(index) {
+                if (visiblePhotos.length === 0) return;
+                currentIndex = (index + visiblePhotos.length) % visiblePhotos.length;
+                const p = visiblePhotos[currentIndex];
+                lbImg.src = p.dataset.full || p.querySelector('img').src;
+                lbImg.alt = p.querySelector('h3') ? p.querySelector('h3').textContent : '';
+                lbCap.textContent = p.dataset.caption || '';
+                lb.hidden = false;
+            }
+
+            function closeLightbox() {
+                lb.hidden = true;
+            }
+
+            // Expose globally so grid clicks can trigger it
+            window.openSpaLightbox = openLightbox;
+
+            photos.forEach((p) => {
+                p.addEventListener('click', () => {
+                    if (p.classList.contains('photo-empty')) return;
+                    openLightbox(visiblePhotos.indexOf(p));
+                });
+            });
+
+            lb.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+            lb.querySelector('.lightbox-prev').addEventListener('click', () => openLightbox(currentIndex - 1));
+            lb.querySelector('.lightbox-next').addEventListener('click', () => openLightbox(currentIndex + 1));
+
+            lb.addEventListener('click', (e) => {
+                if (e.target === lb) closeLightbox();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (spaGallery.classList.contains('active') && !lb.hidden) {
+                    if (e.key === 'Escape') closeLightbox();
+                    else if (e.key === 'ArrowRight') openLightbox(currentIndex + 1);
+                    else if (e.key === 'ArrowLeft') openLightbox(currentIndex - 1);
+                }
+            });
         })();
     </script>
 </body>

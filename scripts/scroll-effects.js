@@ -96,7 +96,7 @@
 
     /* ---------- 1. STAGGERED CHILD REVEALS ---------- */
     document.querySelectorAll(
-        '.tools-grid, .projects-grid, .publications-list, .contact-grid, .gallery-grid, .timeline'
+        '.tools-grid, .projects-grid, .publications-list, .contact-grid, .timeline'
     ).forEach((grid) => {
         /* grid children are .card-reveal wrappers (or .contact-card / .timeline-item) */
         Array.from(grid.children).forEach((child, i) => {

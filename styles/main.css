@@ -2173,3 +2173,42 @@ body::before {
         transform: none;
     }
 }
+
+/* ============================================================
+   SINGLE PAGE APPLICATION (SPA) OVERLAYS
+   ============================================================ */
+.spa-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg-primary);
+    z-index: 9999; /* high z-index to overlay everything else */
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate3d(0, 30px, 0);
+    transition: opacity 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                visibility 0.45s;
+}
+
+.spa-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+}
+
+.spa-overlay .subpage-header {
+    background: var(--bg-header);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Back Link style in SPA is a clickable button */
+.spa-overlay .back-link.btn-spa-close {
+    cursor: pointer;
+    background: none;
+    font-family: inherit;
+}

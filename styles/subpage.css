@@ -166,7 +166,7 @@ img { max-width: 100%; display: block; }
 /* ============================================================
    WORLD PAGE — ArcGIS map fills the rest of the viewport
    ============================================================ */
-#viewDiv {
+#viewDiv, #spa-viewDiv {
     width: 100%;
     height: calc(100vh - 75px);          /* viewport minus header height */
     position: relative;
