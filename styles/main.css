@@ -90,8 +90,8 @@
 
     --text-primary: #1A5276;
     /* Navy */
-    --text-secondary: #1f3d62;
-    --text-muted: #3b516b;
+    --text-secondary: #1A5276;
+    --text-muted: #2a5370;
     --text-on-accent: #f6f9fd;
 
     --accent-gradient: linear-gradient(135deg, #1A5276 0%, #29648a 50%, #4a7fb3 100%);
