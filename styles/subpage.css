@@ -1,6 +1,6 @@
 /* ============================================================
    SHARED SUBPAGE STYLES (world.html + gallery.html)
-   Same Oxford Blue + foggy palette as the main site, with a
+   Same Navy Blue + foggy palette as the main site, with a
    light-mode override that mirrors styles/main.css.
    ============================================================ */
 :root {
@@ -16,16 +16,16 @@
     --text-secondary: #dae2ee;
     --text-muted: #a8b4ca;
 
-    --oxford: #002147;
+    --navy: #1A5276;
     --fog-blue: #4a7fb3;
     --fog-light: #9ab1c9;
     --fog-lavender: #b0a8c4;
-    --accent-gradient: linear-gradient(135deg, #002147 0%, #4a7fb3 45%, #b0a8c4 100%);
+    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #4a7fb3 45%, #b0a8c4 100%);
 
     --border-color: rgba(232, 237, 248, 0.08);
     --border-strong: rgba(154, 177, 201, 0.25);
 
-    --body-glow-1: rgba(0, 33, 71, 0.35);
+    --body-glow-1: rgba(26, 82, 118, 0.35);
     --body-glow-2: rgba(176, 168, 196, 0.08);
 
     --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -41,14 +41,14 @@
     --bg-photo-caption-grad: linear-gradient(to top, rgba(221, 227, 236, 0.95), transparent);
     --bg-lightbox: rgba(221, 227, 236, 0.95);
 
-    --text-primary:   #002147;
+    --text-primary:   #1A5276;
     --text-secondary: #1f3d62;
     --text-muted:     #3b516b;
 
-    --accent-gradient: linear-gradient(135deg, #002147 0%, #1e4f80 45%, #6a558a 100%);
+    --accent-gradient: linear-gradient(135deg, #1A5276 0%, #1e4f80 45%, #6a558a 100%);
 
-    --border-color: rgba(0, 33, 71, 0.12);
-    --border-strong: rgba(0, 33, 71, 0.30);
+    --border-color: rgba(26, 82, 118, 0.12);
+    --border-strong: rgba(26, 82, 118, 0.30);
 
     --body-glow-1: rgba(255, 255, 255, 0.55);
     --body-glow-2: rgba(176, 168, 196, 0.20);
@@ -333,7 +333,7 @@ body.gallery-page {
 .gallery-filter.active {
     background: var(--accent-gradient);
     color: #fff;
-    box-shadow: 0 4px 16px rgba(0, 33, 71, 0.5);
+    box-shadow: 0 4px 16px rgba(26, 82, 118, 0.5);
 }
 
 /* ---------- Masonry-ish grid using CSS Grid ---------- */
@@ -364,7 +364,7 @@ body.gallery-page {
 .photo:hover {
     transform: translateY(-6px);
     border-color: var(--fog-blue);
-    box-shadow: 0 20px 50px rgba(0, 33, 71, 0.55);
+    box-shadow: 0 20px 50px rgba(26, 82, 118, 0.55);
 }
 
 .photo.hidden { display: none; }

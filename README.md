@@ -9,7 +9,7 @@ Apple-style cinematic scroll, an ArcGIS-powered world experience map, and a full
 - `gallery.html` — full-page photo gallery with category filters + lightbox
 
 **Theme**
-- Oxford Blue + foggy lavender / mist gray palette
+- Navy Blue + foggy lavender / mist gray palette
 - All colors live in one `:root` block per stylesheet
 
 ---
@@ -154,7 +154,7 @@ Edit the `:root` block at the top of `styles/main.css` (and `styles/subpage.css`
 ```css
 :root {
     --bg-primary: #050a18;
-    --oxford: #002147;
+    --navy: #1A5276;
     --fog-blue: #4a7fb3;
     --fog-light: #9ab1c9;
     --fog-lavender: #b0a8c4;

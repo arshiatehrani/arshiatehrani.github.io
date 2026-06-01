@@ -81,7 +81,7 @@ window.initWorldMap = function (containerId, opts) {
         const layer = new GraphicsLayer();
         map.add(layer);
 
-        /* Pin colors — match the Oxford Blue / fog theme */
+        /* Pin colors — match the Navy Blue / fog theme */
         const COLOR_STAYS    = [ 74, 127, 179, 0.95 ];
         const COLOR_EXPLORED = [176, 168, 196, 0.90 ];
         const COLOR_TRAVELS  = [154, 177, 201, 0.65 ];
