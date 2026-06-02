@@ -1329,6 +1329,7 @@
                 lbImg.alt = p.querySelector('h3') ? p.querySelector('h3').textContent : '';
                 lbCap.textContent = p.dataset.caption || '';
                 lb.hidden = false;
+                spaGallery.scrollTop = 0;
             }
 
             function closeLightbox() {
