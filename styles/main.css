@@ -1717,6 +1717,21 @@ body::before {
 }
 
 /* Globe teal */
+.contact-card.brand-facebook {
+    --brand-color: #1877F2;
+}
+
+.contact-card.brand-instagram {
+    --brand-color: #E1306C;
+}
+
+.contact-card.brand-strava {
+    --brand-color: #FC5200;
+}
+
+.contact-card.brand-soundcloud {
+    --brand-color: #FF5500;
+}
 
 .contact-card i {
     font-size: 2rem;

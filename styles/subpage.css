@@ -344,6 +344,7 @@ body.gallery-page {
 .masonry {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-auto-flow: dense;
     gap: 0;
 }
 
@@ -355,8 +356,13 @@ body.gallery-page {
     cursor: zoom-in;
     transition: all var(--transition);
     position: relative;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 4 / 3;
 }
+
+/* Variety in tile sizes for a richer grid */
+.photo:nth-child(4n+1) { grid-row: span 1; }
+.photo:nth-child(6n+3) { aspect-ratio: 3 / 4; }
+.photo:nth-child(7n+5) { aspect-ratio: 1 / 1; }
 
 .photo.hidden { display: none; }
 
