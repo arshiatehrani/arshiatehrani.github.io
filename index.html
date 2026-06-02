@@ -24,8 +24,8 @@
             }
         })();
     </script>
-    <link rel="stylesheet" href="styles/main.css?v=58" />
-    <link rel="stylesheet" href="styles/subpage.css?v=60" />
+    <link rel="stylesheet" href="styles/main.css?v=59" />
+    <link rel="stylesheet" href="styles/subpage.css?v=61" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
@@ -1371,23 +1371,37 @@
                 // Scroll to top of the gallery container to show the opened picture
                 spaGallery.scrollTop = 0;
 
-                // Reorder photos dynamically so that:
+                // Preload next and prev images
+                if (visiblePhotos.length > 1) {
+                    const nextPhoto = visiblePhotos[(currentIndex + 1) % visiblePhotos.length];
+                    const prevPhoto = visiblePhotos[(currentIndex - 1 + visiblePhotos.length) % visiblePhotos.length];
+                    const nextImgUrl = nextPhoto.dataset.full || nextPhoto.querySelector('img').src;
+                    const prevImgUrl = prevPhoto.dataset.full || prevPhoto.querySelector('img').src;
+                    
+                    const imgPreloadNext = new Image();
+                    imgPreloadNext.src = nextImgUrl;
+                    const imgPreloadPrev = new Image();
+                    imgPreloadPrev.src = prevImgUrl;
+                }
+
+                // Physically reorder DOM nodes in .masonry:
                 // - The current photo is hidden.
-                // - The photo after it has order 1.
+                // - The photo after it is appended first.
                 // - It loops around to the photos before it.
-                visiblePhotos.forEach((photo, idx) => {
-                    if (idx === currentIndex) {
-                        photo.style.display = 'none';
-                    } else {
-                        photo.style.display = '';
-                        let relativeOrder;
-                        if (idx > currentIndex) {
-                            relativeOrder = idx - currentIndex;
-                        } else {
-                            relativeOrder = (visiblePhotos.length - currentIndex) + idx;
-                        }
-                        photo.style.order = relativeOrder;
-                    }
+                const masonry = spaGallery.querySelector('.masonry');
+                const reordered = [];
+                for (let i = currentIndex + 1; i < visiblePhotos.length; i++) {
+                    reordered.push(visiblePhotos[i]);
+                }
+                for (let i = 0; i < currentIndex; i++) {
+                    reordered.push(visiblePhotos[i]);
+                }
+
+                visiblePhotos[currentIndex].style.display = 'none';
+
+                reordered.forEach((photo) => {
+                    photo.style.display = '';
+                    masonry.appendChild(photo);
                 });
             }
 
@@ -1396,10 +1410,11 @@
                 // Restore scroll position to where the user left off
                 spaGallery.scrollTop = originalScrollPos;
 
-                // Restore original order and visibility
+                // Restore original DOM order and visibility
+                const masonry = spaGallery.querySelector('.masonry');
                 visiblePhotos.forEach((photo) => {
                     photo.style.display = '';
-                    photo.style.order = '';
+                    masonry.appendChild(photo);
                 });
             }
 

@@ -453,12 +453,13 @@ body::before {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 0 2rem;
+    justify-content: flex-start;
+    padding: 90px 2rem 2rem;
     position: relative;
     overflow: visible;
     /* don't clip buttons while they fade on fast scroll */
     scroll-margin-top: var(--nav-anchor-offset);
+    box-sizing: border-box;
 }
 
 .hero::before {
@@ -484,6 +485,7 @@ body::before {
     z-index: 2;
     transform-origin: center center;
     will-change: transform;
+    margin: auto 0;
 }
 
 .hero-content {
@@ -613,10 +615,12 @@ body::before {
 }
 
 .scroll-indicator {
-    position: absolute;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
