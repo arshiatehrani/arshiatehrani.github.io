@@ -25,7 +25,7 @@
         })();
     </script>
     <link rel="stylesheet" href="styles/main.css?v=58" />
-    <link rel="stylesheet" href="styles/subpage.css?v=59" />
+    <link rel="stylesheet" href="styles/subpage.css?v=60" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
@@ -90,10 +90,7 @@
             <div class="hero-buttons reveal">
                 <a href="#projects" class="btn btn-primary">View My Work</a>
                 <a href="https://www.overleaf.com/read/kwcvcpnvmpkv#61e7f0" class="btn btn-secondary" target="_blank" rel="noopener">
-                    <i class="fas fa-file-alt"></i> Resume (1-Page)
-                </a>
-                <a href="https://www.overleaf.com/read/cqrdhgwcpyyy#078947" class="btn btn-secondary" target="_blank" rel="noopener">
-                    <i class="fas fa-file-alt"></i> CV (Multi-Page)
+                    <i class="fas fa-file-alt"></i> Resume
                 </a>
             </div>
         </div>
@@ -891,11 +888,6 @@
                     <span class="contact-label">Music</span>
                     <span class="contact-value">@arshiatehrani</span>
                 </a>
-                <a href="#world" class="contact-card brand-world">
-                    <i class="fas fa-globe"></i>
-                    <span class="contact-label">World Map</span>
-                    <span class="contact-value">Where I've been</span>
-                </a>
             </div>
         </div>
     </section>
@@ -920,7 +912,7 @@
     <script src="scripts/theme.js?v=11"></script>
     <script src="scripts/particles.js?v=52"></script>
     <script src="scripts/scroll-effects.js?v=52"></script>
-    <script src="scripts/main.js?v=28"></script>
+    <script src="scripts/main.js?v=29"></script>
 
     <!-- ==================== SPA GALLERY OVERLAY ==================== -->
     <div id="spa-gallery-overlay" class="spa-overlay" aria-hidden="true">
@@ -1378,12 +1370,37 @@
                 
                 // Scroll to top of the gallery container to show the opened picture
                 spaGallery.scrollTop = 0;
+
+                // Reorder photos dynamically so that:
+                // - The current photo is hidden.
+                // - The photo after it has order 1.
+                // - It loops around to the photos before it.
+                visiblePhotos.forEach((photo, idx) => {
+                    if (idx === currentIndex) {
+                        photo.style.display = 'none';
+                    } else {
+                        photo.style.display = '';
+                        let relativeOrder;
+                        if (idx > currentIndex) {
+                            relativeOrder = idx - currentIndex;
+                        } else {
+                            relativeOrder = (visiblePhotos.length - currentIndex) + idx;
+                        }
+                        photo.style.order = relativeOrder;
+                    }
+                });
             }
 
             function closeLightbox() {
                 lb.hidden = true;
                 // Restore scroll position to where the user left off
                 spaGallery.scrollTop = originalScrollPos;
+
+                // Restore original order and visibility
+                visiblePhotos.forEach((photo) => {
+                    photo.style.display = '';
+                    photo.style.order = '';
+                });
             }
 
             // Expose globally so grid clicks can trigger it

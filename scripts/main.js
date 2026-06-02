@@ -103,12 +103,13 @@
         });
     });
 
-    /* ---------- 4. GALLERY THUMBS → open full gallery page ---------- */
+    /* ---------- 4. GALLERY THUMBS → open full gallery page ----------
     document.querySelectorAll('.gallery-section .gallery-item').forEach((item) => {
         item.addEventListener('click', () => {
             window.location.href = 'gallery.html';
         });
     });
+    */
 
     /* ---------- 5. FOOTER YEAR (auto-updates forever) ---------- */
     // Shows "2026" if the site started this year, or "2026 – 2031" later.

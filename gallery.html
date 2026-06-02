@@ -27,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-    <link rel="stylesheet" href="styles/subpage.css?v=59" />
+    <link rel="stylesheet" href="styles/subpage.css?v=60" />
 </head>
 <body class="gallery-page">
     <!-- Header with back-to-home -->
@@ -309,7 +309,7 @@
 
             let originalScrollPos = 0;
 
-            /* ---------- Lightbox open / nav ---------- */
+             /* ---------- Lightbox open / nav ---------- */
             function open(index) {
                 if (visiblePhotos.length === 0) return;
                 
@@ -324,6 +324,25 @@
                 
                 // Scroll to top to show absolute lightbox
                 window.scrollTo(0, 0);
+
+                // Reorder photos dynamically so that:
+                // - The current photo is hidden.
+                // - The photo after it has order 1.
+                // - It loops around to the photos before it.
+                visiblePhotos.forEach((photo, idx) => {
+                    if (idx === currentIndex) {
+                        photo.style.display = 'none';
+                    } else {
+                        photo.style.display = '';
+                        let relativeOrder;
+                        if (idx > currentIndex) {
+                            relativeOrder = idx - currentIndex;
+                        } else {
+                            relativeOrder = (visiblePhotos.length - currentIndex) + idx;
+                        }
+                        photo.style.order = relativeOrder;
+                    }
+                });
             }
 
             function close() {
@@ -338,6 +357,12 @@
                 
                 void htmlEl.offsetHeight;
                 htmlEl.style.scrollBehavior = prevScrollBehavior;
+
+                // Restore original order and visibility
+                visiblePhotos.forEach((photo) => {
+                    photo.style.display = '';
+                    photo.style.order = '';
+                });
             }
 
             photos.forEach((p) => {
