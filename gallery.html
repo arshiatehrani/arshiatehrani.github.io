@@ -27,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-    <link rel="stylesheet" href="styles/subpage.css?v=12" />
+    <link rel="stylesheet" href="styles/subpage.css?v=58" />
 </head>
 <body class="gallery-page">
     <!-- Header with back-to-home -->
@@ -307,24 +307,37 @@
                 });
             });
 
+            let originalScrollPos = 0;
+
             /* ---------- Lightbox open / nav ---------- */
             function open(index) {
                 if (visiblePhotos.length === 0) return;
+                
+                originalScrollPos = window.scrollY;
+
                 currentIndex = (index + visiblePhotos.length) % visiblePhotos.length;
                 const p = visiblePhotos[currentIndex];
                 lbImg.src = p.dataset.full || p.querySelector('img').src;
                 lbImg.alt = p.querySelector('h3') ? p.querySelector('h3').textContent : '';
                 lbCap.textContent = p.dataset.caption || '';
                 lb.hidden = false;
-                document.body.style.overflow = 'hidden';
-                document.documentElement.style.overflow = 'hidden';
+                
+                // Scroll to top to show absolute lightbox
                 window.scrollTo(0, 0);
             }
 
             function close() {
                 lb.hidden = true;
-                document.body.style.overflow = '';
-                document.documentElement.style.overflow = '';
+                
+                // Restore scroll position instantly
+                const htmlEl = document.documentElement;
+                const prevScrollBehavior = htmlEl.style.scrollBehavior;
+                htmlEl.style.scrollBehavior = 'auto';
+                
+                window.scrollTo(0, originalScrollPos);
+                
+                void htmlEl.offsetHeight;
+                htmlEl.style.scrollBehavior = prevScrollBehavior;
             }
 
             photos.forEach((p) => {
@@ -342,14 +355,6 @@
             lb.addEventListener('click', (e) => {
                 if (e.target === lb) close();
             });
-
-            lb.addEventListener('wheel', (e) => {
-                e.preventDefault();
-            }, { passive: false });
-
-            lb.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-            }, { passive: false });
 
             // Keyboard nav
             document.addEventListener('keydown', (e) => {
