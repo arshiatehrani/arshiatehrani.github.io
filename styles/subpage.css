@@ -517,16 +517,19 @@ body.gallery-page {
 .lightbox button:hover {
     background: var(--accent-gradient);
     border-color: transparent;
-    transform: scale(1.05);
 }
 
 .lightbox-close { top: 1.5rem; right: 1.5rem; }
-.lightbox-prev  { left: 1.5rem; top: 50%; transform: translateY(-50%); }
-.lightbox-next  { right: 1.5rem; top: 50%; transform: translateY(-50%); }
-.lightbox-prev:hover { transform: translateY(-50%) scale(1.05); }
-.lightbox-next:hover { transform: translateY(-50%) scale(1.05); }
-.lightbox-prev:active,
-.lightbox-next:active {
+.lightbox-close:hover { transform: scale(1.05); }
+
+.lightbox-prev  { left: 1.5rem; top: 50%; transform: translateY(-50%) !important; }
+.lightbox-next  { right: 1.5rem; top: 50%; transform: translateY(-50%) !important; }
+
+.lightbox button.lightbox-prev:hover { transform: translateY(-50%) scale(1.05) !important; }
+.lightbox button.lightbox-next:hover { transform: translateY(-50%) scale(1.05) !important; }
+
+.lightbox button.lightbox-prev:active,
+.lightbox button.lightbox-next:active {
     transform: translateY(-50%) scale(0.95) !important;
 }
 
@@ -534,4 +537,9 @@ body.gallery-page {
     .lightbox-prev { left: 0.5rem; }
     .lightbox-next { right: 0.5rem; }
     .lightbox-close { top: 0.75rem; right: 0.75rem; }
+}
+
+/* When lightbox is active, preserve strict linear order of photos in masonry grid by making spans uniform */
+body.lightbox-active .masonry .photo {
+    grid-row: span 2 !important;
 }

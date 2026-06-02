@@ -59,10 +59,6 @@
     function initSectionMotionWrappers() {
         const motions = [];
         document.querySelectorAll('section.section > .container').forEach((container) => {
-            // Exclude the gallery section from fading scroll effects
-            if (container.closest('#gallery')) {
-                return;
-            }
             if (container.querySelector(':scope > .section-motion')) {
                 motions.push(container.querySelector(':scope > .section-motion'));
                 return;

@@ -27,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-    <link rel="stylesheet" href="styles/subpage.css?v=63" />
+    <link rel="stylesheet" href="styles/subpage.css?v=64" />
 </head>
 <body class="gallery-page">
     <!-- Header with back-to-home -->
@@ -324,6 +324,7 @@
                 lbImg.alt = p.querySelector('h3') ? p.querySelector('h3').textContent : '';
                 lbCap.textContent = p.dataset.caption || '';
                 lb.hidden = false;
+                document.body.classList.add('lightbox-active');
                 
                 // Scroll to top to show absolute lightbox
                 window.scrollTo(0, 0);
@@ -370,6 +371,7 @@
 
             function close() {
                 lb.hidden = true;
+                document.body.classList.remove('lightbox-active');
                 
                 // Restore scroll position instantly
                 const htmlEl = document.documentElement;
