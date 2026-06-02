@@ -462,6 +462,8 @@ body.gallery-page {
 }
 
 .lightbox[hidden] { display: none; }
+.lightbox[hidden] .lightbox-prev,
+.lightbox[hidden] .lightbox-next { display: none; }
 
 .lightbox-figure {
     max-width: 90vw;
@@ -503,6 +505,13 @@ body.gallery-page {
     align-items: center;
     justify-content: center;
     transition: all var(--transition);
+}
+
+/* Nav buttons are fixed to viewport so they stay centered when scrolling */
+.lightbox-prev,
+.lightbox-next {
+    position: fixed;
+    z-index: 1001;
 }
 
 .lightbox button:hover {

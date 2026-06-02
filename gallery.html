@@ -27,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-    <link rel="stylesheet" href="styles/subpage.css?v=62" />
+    <link rel="stylesheet" href="styles/subpage.css?v=63" />
 </head>
 <body class="gallery-page">
     <!-- Header with back-to-home -->
@@ -342,28 +342,30 @@
                 }
 
                 // Physically reorder DOM nodes in .masonry:
-                // - The current photo is hidden.
-                // - The photo after it is appended first.
-                // - It loops around to the photos before it.
+                // The photo after current comes first, then wraps around.
+                // The current photo is appended LAST (hidden) so nth-child rules apply correctly.
                 const masonry = document.querySelector('.masonry');
+                
+                // Build the reordered array: [currentIndex+1 ... end, 0 ... currentIndex-1]
                 const reordered = [];
-                for (let i = currentIndex + 1; i < visiblePhotos.length; i++) {
-                    reordered.push(visiblePhotos[i]);
-                }
-                for (let i = 0; i < currentIndex; i++) {
-                    reordered.push(visiblePhotos[i]);
+                for (let i = 1; i < visiblePhotos.length; i++) {
+                    reordered.push(visiblePhotos[(currentIndex + i) % visiblePhotos.length]);
                 }
 
-                // Restore visibility class for all photos, and hide the current one
+                // First, restore all photos to visible
                 visiblePhotos.forEach((photo) => {
                     photo.classList.remove('hidden');
                     photo.style.display = '';
                 });
-                p.classList.add('hidden');
 
+                // Append reordered visible photos
                 reordered.forEach((photo) => {
                     masonry.appendChild(photo);
                 });
+
+                // Append the current photo last and hide it
+                p.classList.add('hidden');
+                masonry.appendChild(p);
             }
 
             function close() {
