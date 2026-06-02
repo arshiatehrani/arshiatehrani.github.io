@@ -2233,3 +2233,11 @@ body::before {
     background: none;
     font-family: inherit;
 }
+
+/* Prevent main page scrolling when SPA overlay is open */
+html.spa-active-body,
+html.spa-active-body body {
+    overflow: hidden !important;
+    height: 100vh !important;
+    position: relative;
+}

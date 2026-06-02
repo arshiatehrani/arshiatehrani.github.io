@@ -56,8 +56,8 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* Scope viewport constraints and base styles to standalone subpages only */
-body.gallery-page, body.world-page,
-html:has(.gallery-page), html:has(.world-page) {
+body.world-page,
+html:has(.world-page) {
     height: 100%;
 }
 
@@ -88,7 +88,7 @@ body.gallery-page, body.world-page {
     background: var(--bg-header);
     backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid var(--border-color);
-    z-index: 50;
+    z-index: 100;
     position: relative;
     transition: var(--transition-theme);
 }
@@ -96,6 +96,7 @@ body.gallery-page, body.world-page {
 .subpage-header.sticky {
     position: sticky;
     top: 0;
+    z-index: 100;
 }
 
 .back-link {
