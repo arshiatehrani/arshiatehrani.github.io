@@ -27,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-    <link rel="stylesheet" href="styles/subpage.css?v=61" />
+    <link rel="stylesheet" href="styles/subpage.css?v=62" />
 </head>
 <body class="gallery-page">
     <!-- Header with back-to-home -->
@@ -313,7 +313,10 @@
             function open(index) {
                 if (visiblePhotos.length === 0) return;
                 
-                originalScrollPos = window.scrollY;
+                // Track scroll position before opening (only if lightbox is currently hidden)
+                if (lb.hidden) {
+                    originalScrollPos = window.scrollY;
+                }
 
                 currentIndex = (index + visiblePhotos.length) % visiblePhotos.length;
                 const p = visiblePhotos[currentIndex];
@@ -322,7 +325,7 @@
                 lbCap.textContent = p.dataset.caption || '';
                 lb.hidden = false;
                 
-                 // Scroll to top to show absolute lightbox
+                // Scroll to top to show absolute lightbox
                 window.scrollTo(0, 0);
 
                 // Preload next and prev images
@@ -351,10 +354,14 @@
                     reordered.push(visiblePhotos[i]);
                 }
 
-                visiblePhotos[currentIndex].style.display = 'none';
+                // Restore visibility class for all photos, and hide the current one
+                visiblePhotos.forEach((photo) => {
+                    photo.classList.remove('hidden');
+                    photo.style.display = '';
+                });
+                p.classList.add('hidden');
 
                 reordered.forEach((photo) => {
-                    photo.style.display = '';
                     masonry.appendChild(photo);
                 });
             }
@@ -375,6 +382,7 @@
                 // Restore original DOM order and visibility
                 const masonry = document.querySelector('.masonry');
                 visiblePhotos.forEach((photo) => {
+                    photo.classList.remove('hidden');
                     photo.style.display = '';
                     masonry.appendChild(photo);
                 });

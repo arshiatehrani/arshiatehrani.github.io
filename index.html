@@ -25,7 +25,7 @@
         })();
     </script>
     <link rel="stylesheet" href="styles/main.css?v=59" />
-    <link rel="stylesheet" href="styles/subpage.css?v=61" />
+    <link rel="stylesheet" href="styles/subpage.css?v=62" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
@@ -111,11 +111,11 @@
             <div class="about-grid">
                 <div class="about-image reveal-left">
                     <div class="image-wrapper">
-                        <!-- EDIT: Replace with your photo at assets/profile.jpg -->
-                        <img src="assets/profile.jpg" alt="Arshia Esmail Tehrani" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                        <!-- Profile photo -->
+                        <img src="assets/profile.jpeg" alt="Arshia Esmail Tehrani" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                         <div class="image-placeholder">
                             <i class="fas fa-user"></i>
-                            <span>Add assets/profile.jpg</span>
+                            <span>Photo unavailable</span>
                         </div>
                     </div>
                 </div>
@@ -725,12 +725,12 @@
     <!-- ==================== GALLERY (embedded preview + expand) ==================== -->
     <section id="gallery" class="section gallery-section">
         <div class="container">
-            <div class="section-header reveal">
+            <div class="section-header">
                 <span class="section-number">06</span>
                 <h2 class="section-title">Gallery</h2>
                 <div class="section-line"></div>
             </div>
-            <div class="section-toolbar reveal">
+            <div class="section-toolbar">
                 <p class="section-subtitle no-mb">Moments and snapshots — click to expand</p>
                 <a href="gallery.html" class="expand-btn">
                     <i class="fas fa-expand"></i> Open full gallery
@@ -738,49 +738,49 @@
             </div>
 
             <div class="gallery-grid">
-                <div class="card-reveal reveal"><figure class="gallery-item">
+                <div class="card-reveal"><figure class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/gallery/05A53D46-4B3D-46A7-8C67-5506FF423303.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
                     </div>
                 </figure></div>
 
-                <div class="card-reveal reveal"><figure class="gallery-item">
+                <div class="card-reveal"><figure class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/gallery/0d4703ac-3ae0-4de0-8700-b2eb39218880.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
                     </div>
                 </figure></div>
 
-                <div class="card-reveal reveal"><figure class="gallery-item">
+                <div class="card-reveal"><figure class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/gallery/2c1f6af5-66e2-4d46-8752-19740fd647ec.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
                     </div>
                 </figure></div>
 
-                <div class="card-reveal reveal"><figure class="gallery-item">
+                <div class="card-reveal"><figure class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/gallery/82ea68dc-539f-4bcb-8ec7-ab626aa372ac.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
                     </div>
                 </figure></div>
 
-                <div class="card-reveal reveal"><figure class="gallery-item">
+                <div class="card-reveal"><figure class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/gallery/B600C677-C82D-47BA-9611-C31167F41786.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
                     </div>
                 </figure></div>
 
-                <div class="card-reveal reveal"><figure class="gallery-item">
+                <div class="card-reveal"><figure class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/gallery/IMG_2676.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
                     </div>
                 </figure></div>
 
-                <div class="card-reveal reveal"><figure class="gallery-item">
+                <div class="card-reveal"><figure class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/gallery/IMG_2678.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
                     </div>
                 </figure></div>
 
-                <div class="card-reveal reveal"><figure class="gallery-item">
+                <div class="card-reveal"><figure class="gallery-item">
                     <div class="gallery-image">
                         <img src="assets/gallery/IMG_2679.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
                     </div>
@@ -911,7 +911,7 @@
     <!-- App scripts (theme.js must run first so particles read the right colors) -->
     <script src="scripts/theme.js?v=11"></script>
     <script src="scripts/particles.js?v=52"></script>
-    <script src="scripts/scroll-effects.js?v=52"></script>
+    <script src="scripts/scroll-effects.js?v=53"></script>
     <script src="scripts/main.js?v=29"></script>
 
     <!-- ==================== SPA GALLERY OVERLAY ==================== -->
@@ -1316,15 +1316,25 @@
 
             /* ---------- Intercept Grid Item Clicks (Direct Lightbox Opening!) ---------- */
             const homepageGalleryItems = document.querySelectorAll('.gallery-section .gallery-item');
-            homepageGalleryItems.forEach((item, idx) => {
+            homepageGalleryItems.forEach((item) => {
                 item.addEventListener('click', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
+                    
+                    const previewImg = item.querySelector('img');
+                    const previewSrc = previewImg ? previewImg.getAttribute('src') : '';
+                    
+                    // Find the matching index in visiblePhotos
+                    const matchingIndex = visiblePhotos.findIndex(photo => {
+                        const photoImg = photo.querySelector('img');
+                        return photoImg && (photoImg.getAttribute('src') === previewSrc || photo.dataset.full === previewSrc);
+                    });
+
                     window.location.hash = '#/gallery';
                     // Wait for transition to start, then trigger open in lightbox
                     setTimeout(() => {
                         if (window.openSpaLightbox) {
-                            window.openSpaLightbox(idx);
+                            window.openSpaLightbox(matchingIndex !== -1 ? matchingIndex : 0);
                         }
                     }, 50);
                 });
@@ -1358,8 +1368,10 @@
             function openLightbox(index) {
                 if (visiblePhotos.length === 0) return;
                 
-                // Track where the user was scrolled before we jump to the top
-                originalScrollPos = spaGallery.scrollTop;
+                // Track where the user was scrolled before we jump to the top (only if lightbox is currently hidden)
+                if (lb.hidden) {
+                    originalScrollPos = spaGallery.scrollTop;
+                }
 
                 currentIndex = (index + visiblePhotos.length) % visiblePhotos.length;
                 const p = visiblePhotos[currentIndex];
@@ -1397,10 +1409,14 @@
                     reordered.push(visiblePhotos[i]);
                 }
 
-                visiblePhotos[currentIndex].style.display = 'none';
+                // Restore visibility class for all photos, and hide the current one
+                visiblePhotos.forEach((photo) => {
+                    photo.classList.remove('hidden');
+                    photo.style.display = '';
+                });
+                p.classList.add('hidden');
 
                 reordered.forEach((photo) => {
-                    photo.style.display = '';
                     masonry.appendChild(photo);
                 });
             }
@@ -1413,6 +1429,7 @@
                 // Restore original DOM order and visibility
                 const masonry = spaGallery.querySelector('.masonry');
                 visiblePhotos.forEach((photo) => {
+                    photo.classList.remove('hidden');
                     photo.style.display = '';
                     masonry.appendChild(photo);
                 });
