@@ -2260,3 +2260,15 @@ html.spa-active-body body {
     height: 100vh !important;
     position: relative;
 }
+
+/* Prevent hero content from overlapping the fixed navbar on short screens (like in-app browsers) */
+@media (max-height: 760px) {
+    .hero {
+        justify-content: flex-start !important;
+        padding-top: 85px !important;
+    }
+    .hero-motion {
+        margin-top: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+}
