@@ -285,6 +285,7 @@
     const heroMotion = document.querySelector('.hero-motion');
     const heroContent = document.querySelector('.hero-content');
     const heroButtons = document.querySelector('.hero-buttons');
+    const scrollIndicator = document.querySelector('.scroll-indicator');
 
     function onScroll() {
         const scrollTop = window.scrollY;
@@ -328,6 +329,16 @@
             heroButtons.style.opacity = String(op);
             heroButtons.style.visibility = hidden ? 'hidden' : 'visible';
             heroButtons.style.pointerEvents = hidden ? 'none' : 'auto';
+        }
+
+        if (scrollIndicator) {
+            const mobile = isMobileView();
+            const ts = Math.min(scrollTop / (vh * (mobile ? 0.15 : 0.2)), 1);
+            const op = Math.max(0, 1 - ts * 2.0);
+            const hidden = op <= 0.02;
+            scrollIndicator.style.opacity = String(op);
+            scrollIndicator.style.visibility = hidden ? 'hidden' : 'visible';
+            scrollIndicator.style.pointerEvents = hidden ? 'none' : 'auto';
         }
 
         applySectionMotions();
