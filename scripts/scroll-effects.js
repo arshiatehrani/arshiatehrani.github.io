@@ -336,7 +336,9 @@
             const ts = Math.min(scrollTop / (vh * (mobile ? 0.15 : 0.2)), 1);
             const op = Math.max(0, 1 - ts * 2.0);
             const hidden = op <= 0.02;
+            const scale = 1 + ts * 0.3; // scale up to 130%
             scrollIndicator.style.opacity = String(op);
+            scrollIndicator.style.transform = `scale(${scale})`;
             scrollIndicator.style.visibility = hidden ? 'hidden' : 'visible';
             scrollIndicator.style.pointerEvents = hidden ? 'none' : 'auto';
         }

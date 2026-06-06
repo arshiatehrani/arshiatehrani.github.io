@@ -785,12 +785,6 @@
                         <img src="assets/gallery/IMG_2678.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
                     </div>
                 </figure></div>
-
-                <div class="card-reveal reveal"><figure class="gallery-item">
-                    <div class="gallery-image">
-                        <img src="assets/gallery/IMG_2679.jpeg" alt="Gallery Photo" onerror="this.style.display='none'; this.parentElement.classList.add('empty');" />
-                    </div>
-                </figure></div>
             </div>
         </div>
     </section>
@@ -917,7 +911,7 @@
     <!-- App scripts (theme.js must run first so particles read the right colors) -->
     <script src="scripts/theme.js?v=11"></script>
     <script src="scripts/particles.js?v=52"></script>
-    <script src="scripts/scroll-effects.js?v=55"></script>
+    <script src="scripts/scroll-effects.js?v=56"></script>
     <script src="scripts/main.js?v=29"></script>
 
     <!-- ==================== SPA GALLERY OVERLAY ==================== -->
@@ -1225,6 +1219,29 @@
             const spaGallery = document.getElementById('spa-gallery-overlay');
             const spaWorld = document.getElementById('spa-world-overlay');
             const body = document.body;
+
+            // Dynamically pick 8 random gallery photos for the homepage preview grid
+            if (spaGallery) {
+                const allPhotos = Array.from(spaGallery.querySelectorAll('.photo'));
+                const validPhotos = allPhotos.filter(p => !p.classList.contains('photo-empty'));
+                // Simple shuffle
+                const shuffled = validPhotos.sort(() => 0.5 - Math.random());
+                const selected = shuffled.slice(0, 8);
+                
+                const previewItems = document.querySelectorAll('.gallery-section .gallery-item');
+                previewItems.forEach((item, index) => {
+                    const photo = selected[index];
+                    if (photo) {
+                        const photoImg = photo.querySelector('img');
+                        const previewImg = item.querySelector('img');
+                        if (photoImg && previewImg) {
+                            const relSrc = photoImg.getAttribute('src');
+                            previewImg.src = relSrc;
+                            previewImg.alt = photoImg.alt;
+                        }
+                    }
+                });
+            }
 
             let lastScrollY = 0;
 
