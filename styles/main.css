@@ -657,7 +657,7 @@ body::before {
     bottom: auto;
     left: auto;
     transform: none;
-    margin-top: 2rem;
+    margin-top: 3.5rem;
     margin-bottom: 1rem;
     display: flex;
     flex-direction: column;
