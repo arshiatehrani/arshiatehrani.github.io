@@ -334,10 +334,9 @@
         }
 
         if (scrollIndicator) {
+            const hidden = heroOp <= 0.02;
             const mobile = isMobileView();
             const t = Math.min(scrollTop / vh, 1);
-            const op = Math.max(0, 1 - t * (mobile ? 3.0 : 2.5));
-            const hidden = op <= 0.02;
             const scaleEnd = heroScaleEnd();
             const scaleDelta = scaleEnd - 1;
             const scale = 1 + t * scaleDelta;
@@ -345,7 +344,7 @@
             const extraOffset = mobile ? 45 : 80;
             const translateY = scrollTop * drift + t * extraOffset;
             
-            scrollIndicator.style.opacity = String(op);
+            scrollIndicator.style.opacity = String(heroOp);
             scrollIndicator.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
             scrollIndicator.style.visibility = hidden ? 'hidden' : 'visible';
             scrollIndicator.style.pointerEvents = hidden ? 'none' : 'auto';
