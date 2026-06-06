@@ -341,7 +341,8 @@
             const scaleDelta = scaleEnd - 1;
             const scale = 1 + t * scaleDelta;
             const drift = mobile ? 0.14 : 0.35;
-            const translateY = scrollTop * drift;
+            const extraOffset = mobile ? 120 : 220;
+            const translateY = scrollTop * drift + t * extraOffset;
             
             scrollIndicator.style.opacity = String(heroOp);
             scrollIndicator.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
