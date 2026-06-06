@@ -337,8 +337,10 @@
             const op = Math.max(0, 1 - ts * 2.0);
             const hidden = op <= 0.02;
             const scale = 1 + ts * 0.3; // scale up to 130%
+            const drift = mobile ? 0.14 : 0.35;
+            const translateY = scrollTop * drift;
             scrollIndicator.style.opacity = String(op);
-            scrollIndicator.style.transform = `scale(${scale})`;
+            scrollIndicator.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
             scrollIndicator.style.visibility = hidden ? 'hidden' : 'visible';
             scrollIndicator.style.pointerEvents = hidden ? 'none' : 'auto';
         }
