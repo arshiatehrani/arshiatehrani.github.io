@@ -301,6 +301,7 @@
         }
 
         // HERO CINEMATIC EXIT — scale/drift on .hero-motion (text + buttons stay aligned)
+        let heroOp = 1;
         if (heroMotion) {
             const mobile = isMobileView();
             const scaleEnd = heroScaleEnd();
@@ -313,33 +314,36 @@
                 const scale = 1 + t * scaleDelta;
                 heroMotion.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
                 if (heroContent) {
-                    heroContent.style.opacity = String(Math.max(0, 1 - t * fadeRate));
+                    heroOp = Math.max(0, 1 - t * fadeRate);
+                    heroContent.style.opacity = String(heroOp);
                 }
             } else {
                 heroMotion.style.transform = `translate3d(0, ${vh * (mobile ? 0.28 : 0.42)}px, 0) scale(${scaleEnd})`;
-                if (heroContent) heroContent.style.opacity = '0';
+                if (heroContent) {
+                    heroOp = 0;
+                    heroContent.style.opacity = '0';
+                }
             }
         }
 
         if (heroButtons) {
-            const mobile = isMobileView();
-            const tb = Math.min(scrollTop / (vh * (mobile ? 0.22 : 0.26)), 1);
-            const op = Math.max(0, 1 - tb * 2.4);
-            const hidden = op <= 0.02;
-            heroButtons.style.opacity = String(op);
+            const hidden = heroOp <= 0.02;
+            heroButtons.style.opacity = String(heroOp);
             heroButtons.style.visibility = hidden ? 'hidden' : 'visible';
             heroButtons.style.pointerEvents = hidden ? 'none' : 'auto';
         }
 
         if (scrollIndicator) {
+            const hidden = heroOp <= 0.02;
             const mobile = isMobileView();
-            const ts = Math.min(scrollTop / (vh * (mobile ? 0.15 : 0.2)), 1);
-            const op = Math.max(0, 1 - ts * 2.0);
-            const hidden = op <= 0.02;
-            const scale = 1 + ts * 0.3; // scale up to 130%
+            const t = Math.min(scrollTop / vh, 1);
+            const scaleEnd = heroScaleEnd();
+            const scaleDelta = scaleEnd - 1;
+            const scale = 1 + t * scaleDelta;
             const drift = mobile ? 0.14 : 0.35;
             const translateY = scrollTop * drift;
-            scrollIndicator.style.opacity = String(op);
+            
+            scrollIndicator.style.opacity = String(heroOp);
             scrollIndicator.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
             scrollIndicator.style.visibility = hidden ? 'hidden' : 'visible';
             scrollIndicator.style.pointerEvents = hidden ? 'none' : 'auto';
