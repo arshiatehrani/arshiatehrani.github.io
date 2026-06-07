@@ -2119,7 +2119,9 @@ body::before {
     .hero-description {
         max-width: 100%;
         padding: 0 0.25rem;
-        margin-bottom: 1.75rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.95rem;
+        line-height: 1.55;
     }
 
     .hero::before {
@@ -2139,6 +2141,16 @@ body::before {
     .hero-buttons {
         flex-direction: column;
         align-items: center;
+        gap: 0.65rem;
+    }
+
+    .scroll-indicator {
+        margin-top: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .scroll-arrow {
+        height: 35px;
     }
 
     .btn {
