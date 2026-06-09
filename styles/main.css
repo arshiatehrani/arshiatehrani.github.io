@@ -1675,8 +1675,8 @@ body::before {
    ============================================================ */
 .contact {
     text-align: center;
-    min-height: calc(100vh - var(--nav-anchor-offset) - 100px);
-    min-height: calc(100dvh - var(--nav-anchor-offset) - 100px);
+    min-height: calc(100vh - var(--nav-anchor-offset));
+    min-height: calc(100dvh - var(--nav-anchor-offset));
     box-sizing: border-box;
 }
 
